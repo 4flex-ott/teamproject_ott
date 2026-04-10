@@ -17,10 +17,11 @@ def create_app():
     from . import models
 
     #블루프린트 목록 이쪽으로 등록해주세요
-    from .views import mypage_views,main_views,policy_views
+    from .views import mypage_views,main_views,policy_views,auth_views
 
     app.register_blueprint(mypage_views.bp)
     app.register_blueprint(main_views.bp)
     app.register_blueprint(policy_views.bp)
+    app.register_blueprint(auth_views.bp)
 
     return app
