@@ -229,7 +229,7 @@ class WatchHistory(db.Model):
 
 # 결제 테이블
 class Payments(db.Model):
-
+A
     payment_id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
     user_unique_id = db.Column(db.BigInteger, db.ForeignKey('user.user_unique_id'), nullable=False)
     subscription_id = db.Column(db.BigInteger, db.ForeignKey('subscription.subscription_id'), nullable=False)
