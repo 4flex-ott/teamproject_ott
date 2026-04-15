@@ -24,7 +24,7 @@ class User (db.Model):
     # [추가] 2. 카카오 연동 여부를 확인하는 고유 식별자
     # 이 값이 NULL이면 연동 안됨, 값이 있으면 연동됨!
     kakao_id = db.Column(db.String(100), unique=True, nullable=True)
-    user_active = db.Column(db.Boolean, nullable=False, default=True)  # 활성화된 유저인지, 차단(블락된)유저인지 True는 로그인가능 False는 로그인 불가능
+    user_active = db.Column(db.Boolean, nullable=False,default=True)  # 활성화된 유저인지, 차단(블락된)유저인지 True는 로그인가능 False는 로그인 불가능
 
     # --- 관계 설정 (Relationship) ---
     # 다른 테이블에서 이 사용자를 참조할 때 편리하게 가져오기 위함입니다.
@@ -49,14 +49,6 @@ class User (db.Model):
     def __repr__(self):
         return f'<User {self.email}>'
 
-    # 1. 연결 테이블 (M:N 관계의 징검다리)
-    # 실제 클래스로 만들지 않고 db.Table을 사용하는 것이 조인(Join) 시 성능과 관리에 유리.
-video_genres = db.Table('video_genres',
-                        db.Column('video_unique_id', db.Integer, db.ForeignKey('video.video_unique_id'),
-                                  primary_key=True),
-                        db.Column('genre_id', db.Integer, db.ForeignKey('genre.genre_id'), primary_key=True)
-                        )
-
 
 class Video(db.Model):
     # 프라이머리 키
@@ -71,9 +63,8 @@ class Video(db.Model):
     video_date = db.Column(db.Date)  # 개봉/등록 날짜
     video_age_limit = db.Column(db.String(20))  # 시청 등급 (예: 15세, All)
     video_synopsis = db.Column(db.Text)  # 줄거리요약
-
-    # [추가] ERD에 정의된 관리자 외래키
-    admin_unique_id = db.Column(db.Integer, db.ForeignKey('admin.admin_unique_id'))
+    video_is_movie = db.Column(db.Boolean, default=True)
+    video_genres = db.Column(db.String(100))
     # --- 관계 설정 (Relationship) ---
 
     # 1. 장르와 다대다(M:N) 연결
@@ -311,7 +302,7 @@ class Notice(db.Model):
 
     # [ERD 반영] 작성자 외래키: 어떤 관리자가 작성했는가
     admin_unique_id = db.Column(db.Integer, db.ForeignKey('admin.admin_unique_id'), nullable=False)
-
+    # 작성한 관리자의 ID를 참조합니다.
     # 공지사항 내용
     title = db.Column(db.String(255), nullable=False)  # 제목
     content = db.Column(db.Text, nullable=False)  # 내용
@@ -323,8 +314,7 @@ class Notice(db.Model):
     # 작성일
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     # --- 외래 키 (Foreign Key) ---
-    # 작성한 관리자의 ID를 참조합니다.
-    admin_unique_id = db.Column(db.Integer, db.ForeignKey('admin.admin_unique_id'), nullable=False)
+
 
     def __repr__(self):
         return f'<Notice {self.title}>'
