@@ -14,3 +14,6 @@ def home():
 @bp.route('/main')
 def main():
     return render_template('main/main.html')
+
+
+
