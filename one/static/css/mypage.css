@@ -20,7 +20,7 @@
     width: 100%;
 }
 
-.action-btn {
+.actionbtn {
     display: inline-block;
     padding: 8px 16px;
     margin-left: 8px;
@@ -32,8 +32,7 @@
     transition: 0.3s;
     border: 1px solid transparent;
 }
-
-.action-btn.primary {
+.actionbtn.primary {
     background-color: #ff153c; /* 티빙 레드 */
     font-weight: bold;
 }
