@@ -7,6 +7,9 @@ html {
 .navbar{
     background-color: black;
     color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 .nav-item{
     color: white;
