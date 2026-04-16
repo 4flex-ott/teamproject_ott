@@ -129,7 +129,6 @@ def kakao_callback():
         user = User(
             user_email=email,
             user_password="",
-            user_name=email,
             signup_method='kakao',
             kakao_id=kakao_id
         )
@@ -166,30 +165,23 @@ def signup():
 
     if form.validate_on_submit():
         try:
-            email = form.email.data
-            password = form.password1.data
-            name = form.name.data
-            phone = form.phone.data
-            gender = form.gender.data
+            # 생년월일 생성
+            birth = datetime(
+                int(form.birth_year.data),
+                int(form.birth_month.data),
+                int(form.birth_day.data)
+            )
 
-            year = form.birth_year.data
-            month = form.birth_month.data
-            day = form.birth_day.data
-
-            birth = None
-            if year and month and day:
-                birth = datetime(int(year), int(month), int(day))
-
-            hashed_pw = generate_password_hash(password)
+            # 비밀번호 암호화
+            hashed_pw = generate_password_hash(form.password1.data)
 
             user = User(
+                user_email=form.email.data,
                 user_password=hashed_pw,
-                user_email=email,
-                user_name=name,
-                user_phone=phone,
-                user_gender=gender,
-                user_birth=birth,
-                signup_method='email'
+                user_name=form.name.data,
+                user_phone=form.phone.data,
+                user_gender=form.gender.data,
+                user_birth=birth
             )
 
             db.session.add(user)
@@ -201,8 +193,9 @@ def signup():
         except Exception as e:
             db.session.rollback()
             print(e)
-            flash("회원가입 실패")
+            flash("서버 오류가 발생했습니다.")
 
+        # try 밖에 있어야 함
     return render_template('auth/signup.html', form=form)
 
 
@@ -224,7 +217,7 @@ def login():
 
             session['user'] = user.user_unique_id
             flash("로그인 성공!")
-            return redirect(url_for('home.index'))
+            return redirect(url_for('home.main'))
         else:
             flash("이메일 또는 비밀번호가 틀렸습니다.")
 
@@ -242,7 +235,8 @@ def logout():
         )
 
     session.clear()
-    return redirect(url_for('auth.login'))
+    flash("로그아웃 되었습니다.")
+    return redirect(url_for('home.index'))
 
 
 @bp.route('/adult-check', methods=['GET', 'POST'])
