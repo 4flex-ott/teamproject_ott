@@ -1,6 +1,6 @@
 from one import db
 from datetime import datetime, timezone
-
+from . import login_manager
 
 # https://blog.naver.com/red0808/223888577210
 class User (db.Model):
@@ -335,3 +335,7 @@ class Admin(db.Model):
 
     def __repr__(self):
         return f'<Admin {self.admin_id} ({self.admin_name})>'
+
+@login_manager.user_loader
+def load_user(user_unique_id ):
+    return User.query.get(int(user_unique_id ))
