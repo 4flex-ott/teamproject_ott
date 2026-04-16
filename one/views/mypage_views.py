@@ -10,17 +10,16 @@ bp = Blueprint('mypage', __name__, url_prefix='/mypage')
 
 @bp.route('/main')
 def mypage():
-    # 1. 세션에 값이 없으면 테스트용으로 1을 먼저 부여합니다.
-    # if not session.get('user_unique_id'):
-    session['user_unique_id'] = 4
-        # Flask-Login을 사용 중이라면 아래 줄도 추가해야 @login_required가 작동합니다.
-        # login_user(User.query.get(1))
+    # 1. 세션에서 로그인한 사용자의 ID를 가져옵니다. ('user' 키 사용)
+    user_unique_id = session.get('user')
 
-    # 2. 세션에서 ID를 가져옵니다.
-    user_unique_id = session.get('user_unique_id')
+    # 2. 로그인하지 않은 사용자가 접근했을 경우 처리
+    if not user_unique_id:
+        flash("로그인이 필요한 서비스입니다.")
+        return redirect(url_for('auth.login'))
 
-    # 3. DB에서 유저 정보를 조회합니다.
-    # user_unique_id가 PK가 맞는지 꼭 확인하세요!
+    # 3. 세션의 ID로 DB에서 유저 정보를 조회합니다.
+    # 데이터가 없으면 404 에러를 띄웁니다.
     user_data = User.query.get_or_404(user_unique_id)
 
     # 4. 템플릿으로 데이터 전달
@@ -32,7 +31,7 @@ def change_info():
 
     # 1. 세션에서 user_unique_id 가져오기
     # 1. 마이페이지와 동일하게 유저 조회 (고정값 1 사용 중이시니 동일하게 적용)
-    user_unique_id = session.get('user_unique_id')
+    user_unique_id = session.get('user')
     user_data = User.query.get_or_404(user_unique_id)
 
     if request.method == 'POST':
