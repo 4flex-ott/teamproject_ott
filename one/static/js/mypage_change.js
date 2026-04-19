@@ -49,3 +49,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+
+function confirmIntegration(method) {
+    const msg = `회원정보 수정을 위해서는 계정 통합을 하셔야 합니다.\n진행하시겠습니까?`;
+
+    if (confirm(msg)) {
+        // '예'를 누르면 정보 수정(통합) 페이지로 이동
+        location.href = "{{ url_for('mypage.change_info') }}";
+    } else {
+        // '아니오'를 누르면 마이페이지(현재 페이지) 유지
+        // 아무것도 하지 않거나 특정 페이지로 리다이렉트 가능
+    }
+}

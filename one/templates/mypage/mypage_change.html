@@ -16,9 +16,15 @@
     <div class="top-action-wrapper">
         <div class="right-actions">
             <!-- 현재 페이지임을 나타내기 위해 active 클래스 추가 -->
-            <a href="{{ url_for('mypage.change_info') }}" class="action-btn active">회원정보 수정</a>
+            {% if user.signup_method == 'email' %}
+                <!-- 일반 이메일 유저는 바로 이동 -->
+                <a href="{{ url_for('mypage.change_info') }}" class="action-btn active">회원정보 수정</a>
+            {% else %}
+                <!-- 소셜 유저는 클릭 시 확인창 실행 -->
+                <a href="#" onclick="confirmIntegration('{{ user.signup_method }}')" class="action-btn active">회원정보 수정</a>
+            {% endif %}
             <a href="{{ url_for('mypage.support_write') }}" class="action-btn">문의하기</a>
-            <a href="{{ url_for('mypage.subscription') }}" class="action-btn primary">이용권 구매</a>
+            <a href="{{ url_for('mypage.subscribe') }}" class="action-btn primary">이용권 구매</a>
         </div>
     </div>
 
@@ -89,4 +95,5 @@
 
 {% block script %}
     <script src="{{ url_for('static', filename='js/mypage_change.js') }}"></script>
+
 {% endblock %}
