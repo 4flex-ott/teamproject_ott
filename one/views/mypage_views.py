@@ -6,9 +6,12 @@ from flask import Blueprint, redirect, url_for, render_template, session, reques
 from datetime import datetime, timezone, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-
+import json # 상단에 추가
 from one.models import User, Support, SupportAnswer, Plan, Subscription, Payment
 from one import db
+import base64  # 토스 API 인증용
+
+
 
 bp = Blueprint('mypage', __name__, url_prefix='/mypage')
 
@@ -29,55 +32,43 @@ def mypage():
     # 4. 템플릿으로 데이터 전달
     return render_template('mypage/mypage_main.html', user=user_data)
 
+
 @bp.route('/change', methods=['GET', 'POST'])
-# @login_required
 def change_info():
-    get_flashed_messages()
-    # 세션에서 user_unique_id 가져오기
     user_unique_id = session.get('user')
     user_data = User.query.get_or_404(user_unique_id)
 
-    if request.method == 'POST':
-        # 현재 비밀번호 검증 추가
-        current_pw_input = request.form.get('current_password')
-        if not check_password_hash(user_data.user_password, current_pw_input):
-            flash('현재 비밀번호가 일치하지 않습니다.', 'danger')
-            return redirect(url_for('mypage.change_info'))
+    # 1. 소셜 유저 필수 정보 확인 (GET 요청 시)
+    if user_data.signup_method in ['naver', 'kakao'] and request.method == 'GET':
+        if not user_data.user_name or not user_data.user_phone:
+            return render_template('mypage/mypage_integrate.html', user=user_data)
 
-        # 폼 데이터 가져오기
-        # --- [수정 실행 로직] ---
+    if request.method == 'POST':
+        # --- 공통 정보 수집 ---
         new_name = request.form.get('user_name')
-        new_birth = request.form.get('user_birth')
         new_phone = request.form.get('user_phone')
+        new_birth = request.form.get('user_birth')
         new_password = request.form.get('user_password')
 
-        # 1. 일반 정보 업데이트
+        # 2. 비밀번호 처리 (신규 등록 또는 변경)
+        if new_password:
+            # 해시로 변환하여 저장
+            user_data.user_password = generate_password_hash(new_password)
+
+        # 3. 일반 정보 업데이트
         user_data.user_name = new_name
         user_data.user_phone = new_phone
-
-        # 날짜 문자열 처리 (YYYY-MM-DD 형식으로 들어올 경우)
         if new_birth:
-            try:
-                # HTML date input은 'YYYY-MM-DD' 형식으로 들어옵니다.
-                user_data.user_birth = datetime.strptime(new_birth, '%Y-%m-%d')
-            except ValueError:
-                flash("날짜 형식이 올바르지 않습니다.", "danger")
-
-        # 2. 비밀번호 변경 (입력값이 있을 경우에만)
-        if new_password:
-            user_data.user_password = generate_password_hash(new_password)
+            user_data.user_birth = datetime.strptime(new_birth, '%Y-%m-%d')
 
         try:
             db.session.commit()
-            flash('회원 정보가 성공적으로 수정되었습니다.', 'success')
+            flash('계정 통합 및 정보 수정이 완료되었습니다.', 'success')
             return redirect(url_for('mypage.mypage'))
-        except Exception as e:
+        except:
             db.session.rollback()
-            flash('수정 중 오류가 발생했습니다.', 'danger')
+            flash('저장 중 오류가 발생했습니다.', 'danger')
 
-
-        # --- [페이지 이동 로직] ---
-        # 유저 정보를 'user' 변수로 넘겨서 input 태그에 뿌려줄 수 있게 함
     return render_template('mypage/mypage_change.html', user=user_data)
 
 
@@ -143,9 +134,6 @@ def support_detail(support_id):
         return redirect(url_for('mypage.mypage'))
 
     return render_template('mypage/support_detail.html', support=support)
-
-
-
 
 
 
@@ -225,86 +213,100 @@ def purchase_plan(plan_id):
         db.session.rollback()
         return redirect(url_for('mypage.subscribe'))
 
+TOSS_SECRET_KEY = "test_sk_GePWvyJnrKRbowbdn5jqVgLzN97E"
 
-@bp.route('/payment/kakao/ready', methods=['POST'])
-def kakao_pay_ready():
+
+@bp.route('/payment/success')
+def payment_success():
+    payment_key = request.args.get('paymentKey')
+    order_id = request.args.get('orderId')
+    amount = request.args.get('amount')
+    plan_id = request.args.get('planId')
+
     user_unique_id = session.get('user')
     if not user_unique_id:
-        return jsonify({"error": "로그인이 필요합니다."}), 401
+        return redirect(url_for('auth.login'))
+    print(f"Secret Key: {TOSS_SECRET_KEY[:10]}...")
+    # 1. 토스 승인 API 호출 (인증 및 최종 승인)
+    secret_key_raw = TOSS_SECRET_KEY + ":"
+    encoded_key = base64.b64encode(secret_key_raw.encode()).decode()
 
-    data = request.get_json()
-    plan_id = data.get('plan_id')
-    plan_name = data.get('plan_name')
-    total_amount = data.get('total_amount')
-
-    # 카카오페이 준비 API 호출
-    URL = "https://kakao.com"
     headers = {
-        # 내 애플리케이션 > 앱 키 > Admin 키를 입력하세요
-        "Authorization": "KakaoAK " + "본인의_ADMIN_KEY_입력",
-        "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
+        "Authorization": f"Basic {encoded_key}",
+        "Content-Type": "application/json"
     }
 
-    params = {
-        "cid": "TC0ONETIME",  # 테스트용 가맹점 코드
-        "partner_order_id": f"order_{user_unique_id}_{plan_id}",  # 주문번호
-        "partner_user_id": str(user_unique_id),  # 사용자 ID
-        "item_name": f"OTT PASS {plan_name.upper()}",  # 상품명
-        "quantity": 1,  # 수량
-        "total_amount": total_amount,  # 금액
-        "tax_free_amount": 0,  # 비과세 금액
-        # 성공/취소/실패 시 돌아올 URL (서버 주소에 맞게 수정)
-        "approval_url": f"http://127.0.0{plan_id}",
-        "cancel_url": "http://127.0.0",
-        "fail_url": "http://127.0.0",
+    payload = {
+        "paymentKey": payment_key,
+        "orderId": order_id,
+        "amount": int(amount)
     }
 
-    res = requests.post(URL, headers=headers, params=params)
-    result = res.json()
-
-    # 결제 승인 단계에서 사용하기 위해 tid(결제 고유 번호)를 세션에 저장
-    session['tid'] = result.get('tid')
-
-    return jsonify(result)
-
-
-@bp.route('/purchase/kakao/success/<int:plan_id>')
-def kakao_pay_success(plan_id):
-    pg_token = request.args.get('pg_token')
-    tid = session.get('tid')
-    user_unique_id = session.get('user')
-
-    # 1. [수정] 카카오페이 승인 API의 정확한 주소
-    # 💡 따옴표 안에 키 값만 정확히 들어가야 합니다.
-    # 혹시 키 앞뒤로 공백이 있다면 .strip()이 제거해줍니다.
-    admin_key = "4690b7854d4e7c725a348cfb9b10025e".strip()
-
-    URL = "https://kakao.com"
-    headers = {
-        # f-string을 사용하여 'KakaoAK'와 키 사이에 공백 하나만 정확히 들어가게 합니다.
-        "Authorization": f"KakaoAK {admin_key}",
-        "Content-type": "application/x-www-form-urlencoded;charset=utf-8",
-    }
-    # 2. [수정] 결제 준비(Ready) 단계의 partner_order_id와 반드시 일치해야 함
-    # 앞서 Ready 단계에서 order_{user_unique_id} 로 보냈다면 여기서도 맞춰야 합니다.
-    params = {
-        "cid": "TC0ONETIME",
-        "tid": tid,
-        "partner_order_id": f"order_{user_unique_id}",  # Ready 단계와 동일하게 수정
-        "partner_user_id": str(user_unique_id),
-        "pg_token": pg_token,
-    }
-
-    res = requests.post(URL, headers=headers, params=params)
-    res_data = res.json()
+    url = "https://api.tosspayments.com/v1/payments/confirm"
+    res = requests.post(url, json=payload, headers=headers)
 
     if res.status_code == 200:
-        # 3. 결제 성공! 이제 DB에 구독 정보를 저장하는 함수로 보냅니다.
-        # 기존에 만드신 'purchase_plan' 함수로 연결하거나 로직을 여기에 작성하세요.
-        flash("결제가 성공적으로 완료되었습니다!")
-        return redirect(url_for('mypage.purchase_plan', plan_id=plan_id))
+        # --- [DB 작업 시작] ---
+        try:
+            plan = Plan.query.get_or_404(plan_id)
+            now = datetime.now()
+
+            # 2. 이용권 기간 계산 (개월 수에 따라 30일씩 추가)
+            duration_map = {'starter': 1, 'basic': 3, 'standard': 6, 'premium': 12}
+            add_days = 30 * duration_map.get(plan.plan_name.lower(), 1)
+
+            # 3. 기존 구독 확인 (연장 로직)
+            active_sub = Subscription.query.filter_by(
+                user_unique_id=user_unique_id,
+                status='active'
+            ).first()
+
+            new_start_date = now
+            if active_sub:
+                # 기존 구독이 남았다면 그 종료일부터 시작, 아니면 지금부터 시작
+                current_end = active_sub.end_date.replace(
+                    tzinfo=None) if active_sub.end_date.tzinfo else active_sub.end_date
+                new_start_date = max(current_end, now)
+                active_sub.status = 'expired'  # 기존 기록은 만료 처리
+
+            # 4. 새 구독 레코드 생성
+            new_sub = Subscription(
+                user_unique_id=user_unique_id,
+                plan_id=plan.plan_id,
+                start_date=new_start_date,
+                end_date=new_start_date + timedelta(days=add_days),
+                status='active'
+            )
+            db.session.add(new_sub)
+            db.session.flush()  # payment에서 참조하기 위해 ID 미리 생성
+
+            # 5. 결제 내역 저장
+            new_payment = Payment(
+                user_unique_id=user_unique_id,
+                subscription_id=new_sub.subscription_id,
+                price=amount,
+                status='success',
+                paid_at=now
+            )
+            db.session.add(new_payment)
+
+            db.session.commit()  # 최종 저장
+            print("DB 저장 성공!")  # 터미널에 찍히는지 확인
+            flash(f"{plan.plan_name.upper()} 이용권 결제가 완료되었습니다!")
+            return redirect(url_for('mypage.mypage'))
+
+        except Exception as e:
+            db.session.rollback()
+            print(f"DB 에러 발생: {e}")
+            flash("결제는 완료되었으나 정보 저장 중 오류가 발생했습니다. 고객센터로 문의하세요.", "danger")
+            return redirect(url_for('mypage.subscribe'))
     else:
-        # 실패 시 에러 로그 확인용
-        print(f"Approve Error: {res_data}")
-        flash("결제 승인에 실패했습니다.")
+        print(f"토스 승인 실패: {res.text}")  # 터미널에 찍히는 메시지가 중요합니다!
+        flash("결제 승인에 실패했습니다.", "danger")
         return redirect(url_for('mypage.subscribe'))
+
+@bp.route('/payment/fail')
+def payment_fail():
+    message = request.args.get('message') or "결제 중 오류가 발생했습니다."
+    flash(message, "danger")
+    return redirect(url_for('mypage.subscribe'))
