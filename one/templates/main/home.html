@@ -37,25 +37,23 @@
 
 <!------------------------------------- 콘텐츠 1 ---------------------------------->
 <section class="content_section container">
-    <h2 class="mb-4">지금 뜨는 콘텐츠</h2>
+    <h2 class="mb-4">새 콘텐츠</h2>
 
+    {% if video_list %}
     <ul class="row g-4 list-unstyled">
+        {% for video in video_list[:5] %}
         <li class="col-6 col-md-4 col-lg">
-            <div class="content_card1"></div>
+<!--            <a href="{{ url_for('video.detail', video_id=video.video_unique_id) }}" class="text-decoration-none">-->
+                <div class="content_card1">
+                    <img src="{{ video.video_thumbnail }}" alt="{{ video.video_title }}">
+                </div>
+<!--            </a>-->
         </li>
-        <li class="col-6 col-md-4 col-lg">
-            <div class="content_card1"></div>
-        </li>
-        <li class="col-6 col-md-4 col-lg">
-            <div class="content_card1"></div>
-        </li>
-        <li class="col-6 col-md-6 col-lg">
-            <div class="content_card1"></div>
-        </li>
-        <li class="col-6 col-md-6 col-lg">
-            <div class="content_card1"></div>
-        </li>
+        {% endfor %}
     </ul>
+    {% else %}
+    <p class="text-white">등록된 콘텐츠가 없습니다.</p>
+    {% endif %}
 </section>
 
 <!------------------------------------- 콘텐츠 2 ---------------------------------->
@@ -64,16 +62,16 @@
 
     <ul class="row g-4 list-unstyled">
         <li class="col-12 col-md-6 col-lg-3">
-            <div class="content_card2"><img src="../.././static/img/reason1.png" alt="reason1.png"></div>
+            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason1.png') }}" alt="reason1"></div>
         </li>
         <li class="col-12 col-md-6 col-lg-3">
-            <div class="content_card2"><img src="../.././static/img/reason2.png" alt="reason2.png"></div>
+            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason2.png') }}" alt="reason2"></div>
         </li>
         <li class="col-12 col-md-6 col-lg-3">
-            <div class="content_card2"><img src="../.././static/img/reason3.png" alt="reason3.png"></div>
+            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason3.png') }}" alt="reason3"></div>
         </li>
         <li class="col-12 col-md-6 col-lg-3">
-            <div class="content_card2"><img src="../.././static/img/reason4.png" alt="reason4.png"></div>
+            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason4.png') }}" alt="reason4"></div>
         </li>
     </ul>
 </section>

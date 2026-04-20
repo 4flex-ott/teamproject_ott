@@ -1,8 +1,32 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from sqlalchemy import or_
 from one import db
 from one.models import User, Video, Support, Review, SupportAnswer
 from datetime import datetime
+
+import os
+from werkzeug.utils import secure_filename
+from flask import current_app
+
+ALLOWED_VIDEO_EXTENSIONS = {'mp4'}
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
+
+def allowed_file(filename, allowed_extensions):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+def get_unique_filename(upload_folder, filename):
+    filename = secure_filename(filename)
+    base, ext = os.path.splitext(filename)
+    count = 1
+    unique_filename = filename
+    save_path = os.path.join(upload_folder, unique_filename)
+
+    while os.path.exists(save_path):
+        unique_filename = f"{base}_{count}{ext}"
+        save_path = os.path.join(upload_folder, unique_filename)
+        count += 1
+
+    return unique_filename
 
 bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -160,15 +184,48 @@ def content_create():
         video_actor = request.form.get('video_actor', '').strip()
         video_age_limit = request.form.get('video_age_limit', '').strip()
         video_date_str = request.form.get('video_date', '').strip()
-        video_url = request.form.get('video_url', '').strip()
-        video_thumbnail = request.form.get('video_thumbnail', '').strip()
         video_synopsis = request.form.get('video_synopsis', '').strip()
         video_genres = request.form.get('video_genres', '').strip()
         video_is_movie = request.form.get('video_is_movie') == 'True'
 
+        video_file = request.files.get('video_file')
+        thumbnail_file = request.files.get('thumbnail_file')
+
         video_date = None
         if video_date_str:
             video_date = datetime.strptime(video_date_str, '%Y-%m-%d').date()
+
+        thumbnail_path = None
+        if thumbnail_file and thumbnail_file.filename != '':
+            if allowed_file(thumbnail_file.filename, ALLOWED_IMAGE_EXTENSIONS):
+                thumb_filename = get_unique_filename(
+                    current_app.config['UPLOAD_FOLDER_THUMBNAILS'],
+                    thumbnail_file.filename
+                )
+
+                thumb_save_path = os.path.join(
+                    current_app.config['UPLOAD_FOLDER_THUMBNAILS'],
+                    thumb_filename
+                )
+                thumbnail_file.save(thumb_save_path)
+
+                thumbnail_path = f"/static/uploads/thumbnails/{thumb_filename}"
+
+        video_path = None
+        if video_file and video_file.filename != '':
+            if allowed_file(video_file.filename, ALLOWED_VIDEO_EXTENSIONS):
+                video_filename = get_unique_filename(
+                    current_app.config['UPLOAD_FOLDER_VIDEOS'],
+                    video_file.filename
+                )
+
+                video_save_path = os.path.join(
+                    current_app.config['UPLOAD_FOLDER_VIDEOS'],
+                    video_filename
+                )
+                video_file.save(video_save_path)
+
+                video_path = f"/static/uploads/videos/{video_filename}"
 
         new_video = Video(
             video_title=video_title,
@@ -176,8 +233,8 @@ def content_create():
             video_actor=video_actor,
             video_age_limit=video_age_limit,
             video_date=video_date,
-            video_url=video_url,
-            video_thumbnail=video_thumbnail,
+            video_url=video_path,
+            video_thumbnail=thumbnail_path,
             video_synopsis=video_synopsis,
             video_genres=video_genres,
             video_is_movie=video_is_movie,
@@ -190,47 +247,84 @@ def content_create():
 
     return render_template(
         'admin/content_form.html',
-        mode='create',
+        mode='edit',
         content=None
     )
 
 
 # ================= 콘텐츠 수정 =================
-@bp.route('/contents/edit/<int:video_id>', methods=['GET', 'POST'])
-def content_edit(video_id):
-    content = Video.query.get_or_404(video_id)
+@bp.route('/contents/edit/<int:content_id>', methods=['GET', 'POST'])
+def content_edit(content_id):
+    content = Video.query.get_or_404(content_id)
 
     if request.method == 'POST':
-        content.video_title = request.form.get('video_title', '').strip()
-        content.video_director = request.form.get('video_director', '').strip()
-        content.video_actor = request.form.get('video_actor', '').strip()
-        content.video_age_limit = request.form.get('video_age_limit', '').strip()
+        content.title = request.form.get('title')
+        content.description = request.form.get('description')
+        content.genre = request.form.get('genre')
+        content.age_rating = request.form.get('age_rating')
 
-        video_date_str = request.form.get('video_date', '').strip()
-        content.video_date = datetime.strptime(video_date_str, '%Y-%m-%d').date() if video_date_str else None
+        video_file = request.files.get('video_file')
+        thumbnail_file = request.files.get('thumbnail_file')
 
-        content.video_url = request.form.get('video_url', '').strip()
-        content.video_thumbnail = request.form.get('video_thumbnail', '').strip()
-        content.video_synopsis = request.form.get('video_synopsis', '').strip()
-        content.video_genres = request.form.get('video_genres', '').strip()
-        content.video_is_movie = request.form.get('video_is_movie') == 'True'
+        # ---------------- 영상 파일 처리 ----------------
+        if video_file and video_file.filename:
+            video_filename = secure_filename(video_file.filename)
+            video_upload_path = os.path.join(current_app.root_path, 'static', 'uploads', 'videos')
+            os.makedirs(video_upload_path, exist_ok=True)
+
+            # 기존 영상 파일 삭제
+            if content.video_url:
+                old_video_path = os.path.join(current_app.root_path, content.video_url.lstrip('/'))
+                if os.path.exists(old_video_path):
+                    os.remove(old_video_path)
+
+            # 새 영상 파일 저장
+            video_file.save(os.path.join(video_upload_path, video_filename))
+            content.video_url = f'/static/uploads/videos/{video_filename}'
+
+        # ---------------- 썸네일 파일 처리 ----------------
+        if thumbnail_file and thumbnail_file.filename:
+            thumbnail_filename = secure_filename(thumbnail_file.filename)
+            thumbnail_upload_path = os.path.join(current_app.root_path, 'static', 'uploads', 'thumbnails')
+            os.makedirs(thumbnail_upload_path, exist_ok=True)
+
+            # 기존 썸네일 파일 삭제
+            if content.video_thumbnail:
+                old_thumbnail_path = os.path.join(current_app.root_path, content.video_thumbnail.lstrip('/'))
+                if os.path.exists(old_thumbnail_path):
+                    os.remove(old_thumbnail_path)
+
+            # 새 썸네일 파일 저장
+            thumbnail_file.save(os.path.join(thumbnail_upload_path, thumbnail_filename))
+            content.video_thumbnail = f'/static/uploads/thumbnails/{thumbnail_filename}'
 
         db.session.commit()
+        flash('콘텐츠가 수정되었습니다.')
         return redirect(url_for('admin.content_list'))
 
-    return render_template(
-        'admin/content_form.html',
-        mode='edit',
-        content=content
-    )
+    return render_template('admin/content_form.html', content=content, mode='edit')
 
 
 # ================= 콘텐츠 삭제 =================
-@bp.route('/contents/delete/<int:video_id>', methods=['POST'])
-def content_delete(video_id):
-    content = Video.query.get_or_404(video_id)
+@bp.route('/contents/delete/<int:content_id>', methods=['POST'])
+def content_delete(content_id):
+    content = Video.query.get_or_404(content_id)
+
+    # 영상 파일 삭제
+    if content.video_url:
+        video_path = os.path.join(current_app.root_path, content.video_url.lstrip('/'))
+        if os.path.exists(video_path):
+            os.remove(video_path)
+
+    # 썸네일 파일 삭제
+    if content.video_thumbnail:
+        thumbnail_path = os.path.join(current_app.root_path, content.video_thumbnail.lstrip('/'))
+        if os.path.exists(thumbnail_path):
+            os.remove(thumbnail_path)
+
     db.session.delete(content)
     db.session.commit()
+    flash('콘텐츠가 삭제되었습니다.')
     return redirect(url_for('admin.content_list'))
 
 

@@ -1,20 +1,22 @@
-from flask import Blueprint, redirect, render_template, url_for
+from flask import Blueprint, render_template
+from ..models import Video
 
-bp=Blueprint('home',__name__,url_prefix='/')
+bp = Blueprint('home', __name__, url_prefix='/')
+
 
 @bp.route('/')
 def index():
-    # 127.0.0.1:5000/ 접속 시 바로 templates/main/home.html을 보여줍니다.
-    return render_template('main/home.html')
+    video_list = Video.query.order_by(Video.video_unique_id.desc()).all()
+    return render_template('main/home.html', video_list=video_list)
+
 
 @bp.route('/home')
 def home():
-    # 127.0.0.1:5000/home 접속 시에도 같은 페이지를 보여주고 싶을 경우
-    return render_template('main/home.html')
+    video_list = Video.query.order_by(Video.video_unique_id.desc()).all()
+    return render_template('main/home.html', video_list=video_list)
+
 
 @bp.route('/main')
 def main():
-    return render_template('main/main.html')
-
-
-
+    video_list = Video.query.order_by(Video.video_unique_id.desc()).all()
+    return render_template('main/main.html', video_list=video_list)
