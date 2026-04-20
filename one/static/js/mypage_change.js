@@ -1,64 +1,58 @@
-// 문서가 완전히 로드된 후 실행
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("=== [체크 1] JS 파일 로드 성공 ===");
 
-
-    // 2. 비밀번호 실시간 입력 감지 -> 버튼 활성화
-    const currentPw = document.getElementById('current_pw');
     const saveBtn = document.getElementById('save_btn');
+    const pw1 = document.getElementById('pw1') || document.getElementById('new_pw');
+    const pw2 = document.getElementById('pw2') || document.getElementById('confirm_pw');
     const pwMsg = document.getElementById('pw_msg');
 
-    if (currentPw && saveBtn) {
-        currentPw.addEventListener('input', function() {
-            if (this.value.trim().length >= 4) {
-                saveBtn.disabled = false;
-                if (pwMsg) {
-                    pwMsg.textContent = "정보를 저장할 준비가 되었습니다.";
-                    pwMsg.style.color = "#4caf50";
-                }
+    console.log("=== [체크 2] 요소 확인 ===");
+    console.log("- 저장버튼:", saveBtn);
+    console.log("- 비번1:", pw1);
+    console.log("- 비번2:", pw2);
+
+    if (!saveBtn || !pw1 || !pw2) {
+        console.error("❌ 에러: HTML에 ID(save_btn, pw1, pw2) 중 하나가 없습니다!");
+        return;
+    }
+
+    const userEmail = saveBtn.dataset.email || "";
+    console.log("- 비교용 이메일:", userEmail);
+
+    function validate() {
+        const val1 = pw1.value.trim();
+        const val2 = pw2.value.trim();
+
+        console.log(`=== [체크 3] 입력 감지: [${val1}] / [${val2}] ===`);
+
+        const isMatch = (val1.length > 0) && (val1 === val2);
+        const isNotEmail = (val1 !== userEmail);
+
+        console.log("- 일치여부:", isMatch);
+        console.log("- 이메일과 다름:", isNotEmail);
+
+        if (pwMsg) {
+            pwMsg.style.display = "block";
+            if (val1 === "" || val2 === "") {
+                pwMsg.style.display = "none";
+            } else if (!isMatch) {
+                pwMsg.textContent = "비밀번호가 일치하지 않습니다.";
+                pwMsg.style.color = "#ff153c";
+            } else if (!isNotEmail) {
+                pwMsg.textContent = "이메일과 동일한 비밀번호는 불가합니다.";
+                pwMsg.style.color = "#ff153c";
             } else {
-                saveBtn.disabled = true;
-                if (pwMsg) {
-                    pwMsg.textContent = "정보 수정을 위해 현재 비밀번호를 입력해 주세요.";
-                    pwMsg.style.color = "#666";
-                }
+                pwMsg.textContent = "사용 가능한 비밀번호입니다.";
+                pwMsg.style.color = "#4caf50";
             }
-        });
+        }
+
+        // 버튼 활성화 실행
+        const finalStatus = !(isMatch && isNotEmail);
+        saveBtn.disabled = finalStatus;
+        console.log("- 버튼 비활성화(disabled) 여부:", finalStatus);
     }
 
-    // 3. 기존 버튼 클래스 교체 및 탭 로직
-    const btns = document.querySelectorAll('.mypage_btn');
-    btns.forEach(btn => {
-        btn.classList.replace('mypage_btn', 'btn-chk');
-    });
-
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    tabBtns.forEach(button => {
-        button.addEventListener('click', () => {
-            const target = button.getAttribute('data-target');
-
-            // 모든 버튼 active 제거
-            tabBtns.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-
-            // 모든 섹션 숨김 후 타겟 표시
-            const sections = document.querySelectorAll('.tab-section');
-            sections.forEach(section => section.classList.remove('active'));
-
-            const targetSection = document.getElementById(target);
-            if (targetSection) targetSection.classList.add('active');
-        });
-    });
+    pw1.addEventListener('input', validate);
+    pw2.addEventListener('input', validate);
 });
-
-
-function confirmIntegration(method) {
-    const msg = `회원정보 수정을 위해서는 계정 통합을 하셔야 합니다.\n진행하시겠습니까?`;
-
-    if (confirm(msg)) {
-        // '예'를 누르면 정보 수정(통합) 페이지로 이동
-        location.href = "{{ url_for('mypage.change_info') }}";
-    } else {
-        // '아니오'를 누르면 마이페이지(현재 페이지) 유지
-        // 아무것도 하지 않거나 특정 페이지로 리다이렉트 가능
-    }
-}

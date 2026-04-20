@@ -222,7 +222,7 @@ def login():
             flash("이메일 또는 비밀번호를 다시 확인해주세요.", "error")
 
     return render_template('auth/login.html', form=form)
-
+# todo admin로그인
 
 @bp.route('/logout')
 def logout():

@@ -6,8 +6,6 @@
 
 {% block styles %}
  <link rel="stylesheet" href="{{ url_for('static', filename='css/mypage_change.css') }}">
-<link rel="stylesheet" href="https://jsdelivr.net">
-<link rel="stylesheet" type="text/css" href="https://npmcdn.com">
 {% endblock %}
 
 {% block content %}
@@ -38,9 +36,9 @@
             </div>
 
             <!-- 비밀번호 확인 (2차) -->
-            <div class="input-group">
+             <div class="input-group">
                 <label>비밀번호 확인</label>
-                <input type="password" id="pw2" placeholder="비밀번호를 한 번 더 입력하세요" required>
+                <input type="password" name="confirm_password" id="pw2" placeholder="비밀번호를 한 번 더 입력하세요" required>
                 <small id="pw_msg" style="color: #ff153c; display: none;">비밀번호가 일치하지 않습니다.</small>
             </div>
 
@@ -72,7 +70,14 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit" class="save-btn">정보 저장 및 통합 완료</button>
+               <button type="submit"
+                        id="save_btn"
+                        class="save-btn"
+                        data-email="{{ user.user_email }}"
+                        data-method="{{ user.signup_method }}"
+                        disabled>
+                    정보 저장 및 통합 완료
+                </button>
                 <a href="{{ url_for('mypage.mypage') }}" class="cancel-btn">나중에 하기</a>
             </div>
         </form>
@@ -81,18 +86,5 @@
 
 {% endblock %}
 {% block script %}
-<script>
-function validatePassword() {
-    const pw1 = document.getElementById('pw1').value;
-    const pw2 = document.getElementById('pw2').value;
-    const errorMsg = document.getElementById('pw-error');
-
-    if (pw1 !== pw2) {
-        errorMsg.style.display = 'block';
-        alert("비밀번호가 일치하지 않습니다.");
-        return false; // 제출 방지
-    }
-    return true;
-}
-</script>
+<script src="{{ url_for('static', filename='js/mypage_change.js') }}"></script>
 {% endblock %}
