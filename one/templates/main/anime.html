@@ -5,7 +5,7 @@
 
 {# 1. 헤드 슬라이더 교체 #}
 {% block head_slider %}
-    {% for video in (anime_videos | default([]))[:6] %}
+    {% for video in (anime_videos | default([]))[:3] %}
     <div class="swiper-slide">
         <a href="{{ url_for('sub.index', id=video['video_unique_id']) }}">
             <img src="{{ video['video_thumbnail'] }}" alt="애니 헤드">

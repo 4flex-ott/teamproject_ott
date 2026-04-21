@@ -89,4 +89,25 @@
 </div>
 
 </body>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if session.get('show_admin_login_success') %}
+        {# 세션 데이터 즉시 제거 (새로고침 시 다시 뜨지 않게 함) #}
+        {% set _ = session.pop('show_admin_login_success') %}
+
+        Swal.fire({
+            title: '관리자 인증 성공!',
+            text: '{{ session.admin_name }}님, 환영합니다.',
+            icon: 'success',
+            width: '360px',
+            background: '#1a1a1a',
+            color: '#fff',
+            confirmButtonText: '확인',
+            confirmButtonColor: '#ff153c'
+        });
+    {% endif %}
+});
+</script>
 </html>
