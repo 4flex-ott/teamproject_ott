@@ -19,17 +19,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const userEmail = saveBtn.dataset.email || "";
     console.log("- 비교용 이메일:", userEmail);
 
-    function validate() {
+     function validate() {
         const val1 = pw1.value.trim();
         const val2 = pw2.value.trim();
 
-        console.log(`=== [체크 3] 입력 감지: [${val1}] / [${val2}] ===`);
+        // --- [추가] 비밀번호 강도 체크 로직 ---
+        let score = 0;
+        if (val1.length >= 8) score++;
+        if (/[0-9]/.test(val1)) score++;
+        if (/[a-zA-Z]/.test(val1)) score++;
+        if (/[^A-Za-z0-9]/.test(val1)) score++;
+
+        let strengthColor = "#333";
+        let strengthText = "보안을 위해 8자 이상 입력하세요.";
+        let barWidth = (val1.length > 0) ? (score + 1) * 20 + "%" : "0%";
+
+        if (val1.length > 0) {
+            if (score <= 1) { strengthColor = "#ff153c"; strengthText = "위험 ❌"; barWidth = "25%"; }
+            else if (score <= 2) { strengthColor = "#ffc107"; strengthText = "보통 ⚠️"; barWidth = "50%"; }
+            else { strengthColor = "#4caf50"; strengthText = "안전 ✅"; barWidth = "100%"; }
+        }
+
+        if (strengthBar) {
+            strengthBar.style.width = barWidth;
+            strengthBar.style.background = strengthColor;
+        }
+        if (strengthMsg) {
+            strengthMsg.textContent = strengthText;
+            strengthMsg.style.color = strengthColor;
+        }
+        // ------------------------------------
 
         const isMatch = (val1.length > 0) && (val1 === val2);
         const isNotEmail = (val1 !== userEmail);
-
-        console.log("- 일치여부:", isMatch);
-        console.log("- 이메일과 다름:", isNotEmail);
+        const isStrong = (score >= 2); // 최소 '보통' 이상이어야 통과
 
         if (pwMsg) {
             pwMsg.style.display = "block";

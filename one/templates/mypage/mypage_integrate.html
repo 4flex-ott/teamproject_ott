@@ -33,6 +33,11 @@
             <div class="input-group">
                 <label>새 비밀번호 설정</label>
                 <input type="password" name="user_password" id="pw1" placeholder="사용할 비밀번호를 입력하세요" required>
+                <!-- 💡 강도 게이지 바 추가 -->
+                <div class="strength-meter" style="height: 4px; background: #333; margin-top: 8px; border-radius: 2px; overflow: hidden;">
+                    <div id="strength-bar" style="height: 100%; width: 0%; transition: all 0.3s ease;"></div>
+                </div>
+                <small id="strength_msg" style="display: block; margin-top: 5px; color: #888;">보안을 위해 8자 이상 입력하세요.</small>
             </div>
 
             <!-- 비밀번호 확인 (2차) -->

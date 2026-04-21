@@ -219,8 +219,7 @@ def login():
             session['admin_user'] = admin.admin_unique_id
             session['admin_name'] = admin.admin_name
             session['is_admin'] = True  # 관리자 여부 플래그
-
-            flash(f"{admin.admin_name} 관리자님, 환영합니다.", "success")
+            session['show_admin_login_success'] = True
             return redirect(url_for('admin.admin_main'))  # 관리자 메인 페이지로 이동
 
         # 2. 관리자가 아니면 일반 유저(User) 테이블 확인
