@@ -1,7 +1,10 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, RadioField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
-from datetime import date
+from datetime import date, datetime
+from wtforms.validators import Length, Regexp
+from wtforms.validators import ValidationError
+import re
 
 from one.models import User
 
@@ -33,7 +36,12 @@ class UserCreateForm(FlaskForm):
 
     # 비밀번호
     password1 = PasswordField('비밀번호', validators=[
-        DataRequired(message="비밀번호를 입력해주세요.")
+        DataRequired(message="비밀번호를 입력해주세요."),
+        Length(min=8, message="비밀번호는 8자 이상이어야 합니다."),
+        Regexp(
+            r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*]).+$',
+            message="영문, 숫자, 특수문자를 모두 포함해야 합니다."
+        )
     ])
 
     password2 = PasswordField(
@@ -65,6 +73,23 @@ class UserCreateForm(FlaskForm):
         validate_choice=False,
         validators=[DataRequired(message="일을 선택해주세요.")]
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        current_year = datetime.now().year
+
+        self.birth_year.choices = [('', '년도')] + [
+            (str(y), str(y)) for y in range(current_year, 1949, -1)
+        ]
+
+        self.birth_month.choices = [('', '월')] + [
+            (str(m), str(m)) for m in range(1, 13)
+        ]
+
+        self.birth_day.choices = [('', '일')] + [
+            (str(d), str(d)) for d in range(1, 32)
+        ]
 
     # 성별
     gender = RadioField(
@@ -131,18 +156,17 @@ class ResetPasswordForm(FlaskForm):
         ]
     )
 
+    # 🔥 여기 추가
+    def validate_password1(self, field):
+        pw = field.data
+
+        if len(pw) < 8 or \
+                not re.search(r'[A-Za-z]', pw) or \
+                not re.search(r'[0-9]', pw) or \
+                not re.search(r'[!@#$%^&*]', pw):
+            raise ValidationError("영문, 숫자, 특수문자를 포함한 8자 이상으로 입력해주세요.")
+
 
 class FindIdForm(FlaskForm):
     name = StringField('이름', validators=[DataRequired()])
     phone = StringField('휴대전화', validators=[DataRequired()])
-
-
-class ResetPasswordForm(FlaskForm):
-    email = StringField('이메일', validators=[DataRequired(), Email()])
-    name = StringField('이름', validators=[DataRequired()])
-
-    password1 = PasswordField('새 비밀번호', validators=[DataRequired()])
-    password2 = PasswordField(
-        '비밀번호 확인',
-        validators=[DataRequired(), EqualTo('password1')]
-    )

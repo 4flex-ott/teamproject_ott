@@ -32,7 +32,7 @@
                 <div class="mb-2">
                     {{ form.name(class="form-control py-3 border-0",
                     placeholder="이름",
-                    style="background-color: #3f474d !important; color: #fff !important; font-size: 0.95rem;
+                    style="background-color: #333b41 !important; color: #fff !important; font-size: 0.95rem;
                     border-radius: 8px;") }}
 
                     {% if form.name.errors %}
@@ -46,7 +46,7 @@
                 <div class="mb-2">
                     {{ form.email(class="form-control py-3 border-0",
                     placeholder="이메일",
-                    style="background-color: #3f474d !important; color: #fff !important; font-size: 0.95rem;
+                    style="background-color: #333b41 !important; color: #fff !important; font-size: 0.95rem;
                     border-radius: 8px;") }}
 
                     {% if form.email.errors %}
@@ -60,7 +60,7 @@
                 <div class="mb-2 d-flex gap-2">
                     {{ form.phone(class="form-control py-3 border-0",
                     placeholder="휴대전화",
-                    style="background-color: #3f474d !important; color: #fff !important; font-size: 0.95rem;
+                    style="background-color: #333b41 !important; color: #fff !important; font-size: 0.95rem;
                     border-radius: 8px;") }}
 
                     <button type="button" class="btn btn-secondary"
@@ -75,20 +75,21 @@
                     id="password1",
                     class="form-control py-3 border-0",
                     placeholder="비밀번호",
-                    style="background-color: #3f474d !important; color: #fff !important;"
+                    style="background-color: #333b41; color: #fff;"
                     ) }}
 
-                    {% for error in form.password2.errors %}
-                    <div class="text-danger small mt-1">{{ error }}</div>
-                    {% endfor %}
+
+                    <!-- 상태 메시지 -->
+                    <div id="pw-error" class="small mt-1"></div>
                 </div>
 
+                <!-- 비밀번호 확인 -->
                 <div class="mb-3">
                     {{ form.password2(
                     id="password2",
                     class="form-control py-3 border-0",
                     placeholder="비밀번호 확인",
-                    style="background-color: #3f474d !important; color: #fff !important;"
+                    style="background-color: #333b41; color: #fff;"
                     ) }}
                     <div id="password-match-msg" class="small mt-1"></div>
                 </div>
@@ -129,8 +130,7 @@
                 {% endif %}
 
                 <!-- 회원가입 버튼 -->
-                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mb-3"
-                        style="border-radius: 50px; background-color: #0056ff; border: none;">
+                <button type="submit" class="btn-signup w-100 fw-bold py-2 mb-3">
                     회원가입
                 </button>
             </form>

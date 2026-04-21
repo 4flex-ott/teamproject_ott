@@ -40,10 +40,71 @@ body {
 .text-center a {
     display: inline-block;
     transition: all 0.2s ease;
+    color: #adb5bd;       /* 기본 색 유지 */
+    font-weight: 400;     /* 기본 */
 }
 
 .text-center a:hover {
-    color: #0d6efd !important;
-    transform: scale(1.05);
+    color:  #adb5bd !important;
+    font-weight: 600;
+    transform: scale(1.03);
 }
 
+.btn-signup {
+    width: 100%;
+    border-radius: 6px;
+    padding: 12px;
+
+    background: #ff153c;
+    color: #fff;
+    border: none;
+
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-signup:hover {
+    background: #e01335;
+}
+
+.btn-signup:active {
+    transform: scale(0.97);
+}
+
+/* 카드 */
+.login-card {
+    max-width: 440px;
+    width: 100%;
+    padding: 40px;
+    background-color: #1e1e1e;  /* ✅ 통일 */
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+}
+
+/* 입력창 */
+.custom-input {
+    background-color: #2f2f2f !important; /* ✅ 통일 */
+    color: #fff !important;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border: none;
+}
+
+/* 포커스 */
+.custom-input:focus {
+    background-color: #2f2f2f !important;
+    box-shadow: none;
+    border: 1px solid #ff153c; /* 포커스 빨강 */
+}
+
+/* placeholder */
+.custom-input::placeholder {
+    color: #aaa;
+}
+
+/* show 버튼 */
+.password-show {
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: #adb5bd;
+}
