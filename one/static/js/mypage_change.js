@@ -1,81 +1,66 @@
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("=== [체크 1] JS 파일 로드 성공 ===");
+    console.log("마이페이지 수정 JS 로드 완료");
 
+    const currentPw = document.getElementById('current_pw');
+    const newPw = document.getElementById('new_pw');
+    const confirmPw = document.getElementById('confirm_pw');
     const saveBtn = document.getElementById('save_btn');
     const pw1 = document.getElementById('pw1') || document.getElementById('new_pw');
     const pw2 = document.getElementById('pw2') || document.getElementById('confirm_pw');
     const pwMsg = document.getElementById('pw_msg');
+    const matchMsg = document.getElementById('match_msg');
 
-    console.log("=== [체크 2] 요소 확인 ===");
-    console.log("- 저장버튼:", saveBtn);
-    console.log("- 비번1:", pw1);
-    console.log("- 비번2:", pw2);
+    // 버튼에 심어둔 유저 이메일 가져오기
+    const userEmail = saveBtn.dataset.email;
 
-    if (!saveBtn || !pw1 || !pw2) {
-        console.error("❌ 에러: HTML에 ID(save_btn, pw1, pw2) 중 하나가 없습니다!");
-        return;
-    }
+    function validate() {
+    const currVal = currentPw.value.trim();
+    const newVal = newPw.value.trim();
+    const cfmVal = confirmPw.value.trim();
 
-    const userEmail = saveBtn.dataset.email || "";
-    console.log("- 비교용 이메일:", userEmail);
+    // 💡 HTML의 signup_method 정보를 가져옵니다 (데이터 속성 등 활용)
+    const isSocial = "{{ user.signup_method }}" !== 'email'; // 실제 구현에 맞춰 변수 전달 필요
 
-     function validate() {
-        const val1 = pw1.value.trim();
-        const val2 = pw2.value.trim();
+    // 1. 소셜 유저면 현재비번 무시(true), 일반 유저면 4자 이상 입력 확인
+    const isCurrentOk = isSocial ? true : currVal.length >= 4;
 
-        // --- [추가] 비밀번호 강도 체크 로직 ---
-        let score = 0;
-        if (val1.length >= 8) score++;
-        if (/[0-9]/.test(val1)) score++;
-        if (/[a-zA-Z]/.test(val1)) score++;
-        if (/[^A-Za-z0-9]/.test(val1)) score++;
+    let isNewOk = true;
 
-        let strengthColor = "#333";
-        let strengthText = "보안을 위해 8자 이상 입력하세요.";
-        let barWidth = (val1.length > 0) ? (score + 1) * 20 + "%" : "0%";
-
-        if (val1.length > 0) {
-            if (score <= 1) { strengthColor = "#ff153c"; strengthText = "위험 ❌"; barWidth = "25%"; }
-            else if (score <= 2) { strengthColor = "#ffc107"; strengthText = "보통 ⚠️"; barWidth = "50%"; }
-            else { strengthColor = "#4caf50"; strengthText = "안전 ✅"; barWidth = "100%"; }
-        }
-
-        if (strengthBar) {
-            strengthBar.style.width = barWidth;
-            strengthBar.style.background = strengthColor;
-        }
-        if (strengthMsg) {
-            strengthMsg.textContent = strengthText;
-            strengthMsg.style.color = strengthColor;
-        }
-        // ------------------------------------
-
-        const isMatch = (val1.length > 0) && (val1 === val2);
-        const isNotEmail = (val1 !== userEmail);
-        const isStrong = (score >= 2); // 최소 '보통' 이상이어야 통과
-
-        if (pwMsg) {
-            pwMsg.style.display = "block";
-            if (val1 === "" || val2 === "") {
-                pwMsg.style.display = "none";
-            } else if (!isMatch) {
-                pwMsg.textContent = "비밀번호가 일치하지 않습니다.";
-                pwMsg.style.color = "#ff153c";
-            } else if (!isNotEmail) {
-                pwMsg.textContent = "이메일과 동일한 비밀번호는 불가합니다.";
-                pwMsg.style.color = "#ff153c";
+        // 2. 새 비밀번호 입력 시 검증 로직
+        if (newVal.length > 0) {
+            if (newVal === userEmail) {
+                matchMsg.textContent = "⚠️ 이메일과 동일한 비밀번호는 사용할 수 없습니다.";
+                matchMsg.style.color = "#ff153c";
+                isNewOk = false;
+            } else if (newVal !== cfmVal) {
+                matchMsg.textContent = "⚠️ 새 비밀번호와 일치하지 않습니다.";
+                matchMsg.style.color = "#ff153c";
+                isNewOk = false;
             } else {
-                pwMsg.textContent = "사용 가능한 비밀번호입니다.";
-                pwMsg.style.color = "#4caf50";
+                matchMsg.textContent = "✅ 새 비밀번호와 일치합니다.";
+                matchMsg.style.color = "#4caf50";
+                isNewOk = true;
             }
+        } else {
+            matchMsg.textContent = "";
+            isNewOk = true; // 새 비번 입력 안 할 경우(기존 비번 유지) 통과
         }
 
-        // 버튼 활성화 실행
-        const finalStatus = !(isMatch && isNotEmail);
-        saveBtn.disabled = finalStatus;
-        console.log("- 버튼 비활성화(disabled) 여부:", finalStatus);
-    }
+        // 3. 안내 메시지 업데이트
+        if (isCurrentOk) {
+            pwMsg.textContent = "정보를 저장할 준비가 되었습니다.";
+            pwMsg.style.color = "#4caf50";
+        } else {
+            pwMsg.textContent = "정보 수정을 위해 현재 비밀번호를 입력해 주세요.";
+            pwMsg.style.color = "#666";
+        }
 
-    pw1.addEventListener('input', validate);
-    pw2.addEventListener('input', validate);
+        // 최종 버튼 활성화 여부
+       saveBtn.disabled = !(isCurrentOk && isNewOk);
+}
+
+
+    [currentPw, newPw, confirmPw].forEach(el => {
+        if(el) el.addEventListener('input', validate);
+    });
 });

@@ -243,6 +243,8 @@ font-size:20px
     font-weight: bold;
 }
 
+
+
 .swal-popup-custom {
     border-radius: 18px !important;
     padding: 28px !important;
@@ -320,3 +322,4 @@ font-size:20px
 .swal-cancel-btn:active {
     transform: scale(0.95);
 }
+

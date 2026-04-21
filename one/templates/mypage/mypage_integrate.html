@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block title %}
-    계정통합
+계정통합
 {% endblock %}
 
 {% block styles %}
- <link rel="stylesheet" href="{{ url_for('static', filename='css/mypage_change.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mypage_change.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -16,7 +16,8 @@
             보안을 위해 <strong>비밀번호</strong>를 설정하고 추가 정보를 입력해 주세요.
         </p>
 
-        <form method="POST" action="{{ url_for('mypage.change_info') }}" class="edit-form" onsubmit="return validateForm()">
+        <form method="POST" action="{{ url_for('mypage.change_info') }}" class="edit-form"
+              onsubmit="return validatePassword()"
             <!-- 이름 -->
             <div class="input-group">
                 <label>이름</label>
@@ -32,12 +33,7 @@
             <!-- 비밀번호 설정 (1차) -->
             <div class="input-group">
                 <label>새 비밀번호 설정</label>
-                <input type="password" name="user_password" id="pw1" placeholder="사용할 비밀번호를 입력하세요" required>
-                <!-- 💡 강도 게이지 바 추가 -->
-                <div class="strength-meter" style="height: 4px; background: #333; margin-top: 8px; border-radius: 2px; overflow: hidden;">
-                    <div id="strength-bar" style="height: 100%; width: 0%; transition: all 0.3s ease;"></div>
-                </div>
-                <small id="strength_msg" style="display: block; margin-top: 5px; color: #888;">보안을 위해 8자 이상 입력하세요.</small>
+                <input type="password" name="user_password" id="password1" placeholder="사용할 비밀번호를 입력하세요" required>
             </div>
 
             <!-- 비밀번호 확인 (2차) -->
@@ -54,24 +50,32 @@
             </div>
 
             <!-- 생년월일 -->
-            <div class="input-group">
-                <label>생년월일</label>
-                <input type="date" name="user_birth" class="custom-date-input" required>
+            <div class="mb-1 text-light" style="font-size: 0.85rem;">생년월일</div>
+
+            <div class="d-flex gap-2 mb-2">
+                {{ form.birth_year(class="form-select") }}
+                {{ form.birth_month(class="form-select") }}
+                {{ form.birth_day(class="form-select") }}
             </div>
 
-            <!-- 성별 추가 (모델에 있으므로) -->
-            <div class="input-group">
-                <label>성별</label>
-                <div class="gender-selection-wrapper">
-                    <label class="gender-label">
-                        <input type="radio" name="user_gender" value="M" checked>
-                        <span class="gender-custom-btn">남성</span>
-                    </label>
-                    <label class="gender-label">
-                        <input type="radio" name="user_gender" value="F">
-                        <span class="gender-custom-btn">여성</span>
-                    </label>
-                </div>
+            {% if form.birth_year.errors %}
+            <div class="text-danger small mb-2">
+                {{ form.birth_year.errors[0] }}
+            </div>
+            {% endif %}
+
+            <!-- 성별 -->
+            <div class="mt-2 mb-1 text-light" style="font-size: 0.85rem;">성별</div>
+
+            <div class="d-flex gap-2 mb-3">
+                {% for subfield in form.gender %}
+                <label class="w-100">
+                    {{ subfield(style="display:none;") }}
+                    <div class="gender-btn text-center py-3">
+                        {{ subfield.label.text }}
+                    </div>
+                </label>
+                {% endfor %}
             </div>
 
             <div class="form-actions">
@@ -90,6 +94,8 @@
 </section>
 
 {% endblock %}
+
 {% block script %}
+<script src="{{ url_for('static', filename='js/signup.js') }}"></script>
 <script src="{{ url_for('static', filename='js/mypage_change.js') }}"></script>
 {% endblock %}

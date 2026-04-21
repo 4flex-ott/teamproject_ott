@@ -1,16 +1,16 @@
-from flask import Blueprint, render_template
+
+from flask import Blueprint, redirect, render_template, url_for, session
 from ..models import Video, Plan
 
 bp = Blueprint('home', __name__, url_prefix='/')
 
 
+
 @bp.route('/')
 def index():
-    video_list = Video.query.order_by(Video.video_unique_id.desc()).all()
-    plan_list = Plan.query.order_by(Plan.price.asc()).all()
-    return render_template('main/home.html', video_list=video_list,
-                           plans=plan_list)
-
+    if session.get('user'):   # 🔥 로그인 상태 체크
+        return redirect(url_for('home.main'))
+    return render_template('main/home.html')
 
 @bp.route('/home')
 def home():
