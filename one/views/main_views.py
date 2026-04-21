@@ -22,12 +22,15 @@ def home():
 
 @bp.route('/main')
 def main():
-    return render_template('main/main.html')
+    video_list = Video.query.order_by(Video.video_unique_id.desc()).all()
+    
+    # 2. 템플릿에 video_list 데이터를 전달합니다.
+    # 기존에 'main.html'을 사용 중이라면 아래와 같이 작성합니다.
+    return render_template('main/main.html', video_list=video_list)
 
 @bp.route('/movie')
 def movie():
     return render_template('main/movie.html')
-
 
 @bp.route('/drama')
 def drama():

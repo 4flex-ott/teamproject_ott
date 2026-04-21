@@ -1,5 +1,4 @@
-{% set videos = videos if videos is defined else [] %}
-{% set top_videos = top_videos if top_videos is defined else [] %}
+
 
 {% extends "base.html" %}
 {% block title %}
@@ -14,22 +13,20 @@
 {% block content %}
 <section>
     {% block head_slider %}
-                {% for video in videos[:6] | default([]) %}
+                {% for video in video_list[:6] | default([]) %}
                 <div class="swiper-slide">
-                    <a href="{{ url_for('sub.index', id=video['video_unique_id']) }}">
-                        <img src="{{ video['video_thumbnail'] }}" alt="thumbnail">
+                    {# 클릭 시 상세 페이지로 이동 (id 전달) #}
+                    <a href="{{ url_for('video.detail', video_id=video.video_unique_id) }}">
+                        {# 썸네일 이미지만 출력 #}
+                        <img src="{{ video.video_thumbnail }}" alt="{{ video.video_title }}">
                     </a>
                 </div>
                 {% endfor %}
                 {% endblock %}
-            </div>
-                <div class="swiper-slide"><a href="{{ url_for('sub.index') }}"></a></div>
-            </div>
+           
             <div class="swiper-button-next"></div>
             <div class="swiper-button-prev"></div>
             <div class="swiper-pagination"></div>
-        </div>
-    </div>
     <br>
     {% block nav_slider %}
     <div class="nav_slider">
@@ -59,19 +56,15 @@
         <div class="section_slider">
             <div class="swiper mySwiper3">
                 <div class="swiper-wrapper">
-                    {% for video in videos[:15] | default([]) %}
+                    {% for video in video_list[:15] | default([]) %}
                     <div class="swiper-slide">
                         <div class="rank_num">{{ loop.index }}</div>
-                        <a href="{{ url_for('sub.index', id=video['video_unique_id']) }}">
-                            <img src="{{ video['video_thumbnail'] }}" alt="thumbnail">
+                        <a href="{{ url_for('video.detail', video_id=video.video_unique_id) }}">
+                        {# 썸네일 이미지만 출력 #}
+                        <img src="{{ video.video_thumbnail }}" alt="{{ video.video_title }}">
                         </a>
                     </div>
                     {% endfor %}
-                
-                    <div class="swiper-slide">
-                        <div class="rank_num">15</div>
-                        <a href="{{ url_for('sub.index') }}"><img src="{{ url_for('static', filename='img/main_img/main_section.webp') }}" alt=""></a>
-                    </div>
                 </div>
                 <div class="swiper-button-next"></div>
                 <div class="swiper-button-prev"></div>
@@ -82,22 +75,23 @@
     </div>
     {% block sections_area %}
     {% set sections = [
-        ('새로 공개된 드라마', videos[0:12]),
-        ('지금 방영중인 컨텐츠', videos[12:24]),
-        ('인기 영화', videos[24:36]),
-        ('요즘 인기 예능', videos[36:48])
+        ('새로 공개된 드라마', video_list[0:12]),
+        ('지금 방영중인 컨텐츠', video_list[12:24]),
+        ('인기 영화', video_list[24:36]),
+        ('요즘 인기 예능', video_list[36:48])
     ] %}
 
-    {% for title, section_videos in sections %}
+    {% for title, section_video_list in sections %}
     <div class="box{{ loop.index + 1 }}">
         <div class="h3"><h3>{{ title }}</h3></div>
         <div class="section_slider">
             <div class="swiper mySwiper4">
                 <div class="swiper-wrapper">
-                    {% for video in section_videos %}
+                    {% for video in section_video_list %}
                     <div class="swiper-slide">
-                        <a href="{{ url_for('sub.index', id=video['video_unique_id']) }}">
-                            <img src="{{ video['video_thumbnail'] }}" alt="thumbnail">
+                        <a href="{{ url_for('video.detail', video_id=video.video_unique_id) }}">
+                        {# 썸네일 이미지만 출력 #}
+                        <img src="{{ video.video_thumbnail }}" alt="{{ video.video_title }}">
                         </a>
                     </div>
                     {% endfor %}
