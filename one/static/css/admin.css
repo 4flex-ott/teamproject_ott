@@ -15,6 +15,35 @@ body {
     min-height: 100vh;
 }
 
+.admin_topbar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin_name {
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* 로그아웃 버튼 */
+.btn_logout {
+    background-color: red;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.btn_logout:hover {
+    background-color: #bb2d3b;
+}
+
 /* ================= 대시보드 숫자 카드 ================= */
 
 .dashboard_cards {
@@ -98,6 +127,7 @@ body {
 .admin_content {
     flex: 1;
     padding: 40px;
+    position: relative;
 }
 
 /* ================= 카드 ================= */

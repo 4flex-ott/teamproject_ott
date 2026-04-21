@@ -1,128 +1,100 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>콘텐츠 관리</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-</head>
-<body>
+{% extends 'admin/admin_base.html' %}
 
-<div class="admin_wrap">
+{% block title %}콘텐츠 관리{% endblock %}
 
-    <aside class="admin_sidebar">
-        <h2>
-            <a href="{{ url_for('admin.admin_main') }}" class="admin_title">관리자</a>
-        </h2>
-        <ul>
-            <li><a href="{{ url_for('admin.member_list') }}">회원 관리</a></li>
-            <li><a href="{{ url_for('admin.content_list') }}" class="active">콘텐츠 관리</a></li>
-            <li><a href="{{ url_for('admin.inquiry_list') }}">문의 관리</a></li>
-            <li><a href="{{ url_for('admin.review_list') }}">리뷰 관리</a></li>
-            <li><a href="{{ url_for('admin.notice_list') }}">공지사항 관리</a></li>
-        </ul>
-    </aside>
+{% block content %}
 
-    <main class="admin_content">
-        <h1>콘텐츠 관리</h1>
+<h1>콘텐츠 관리</h1>
 
-        <div class="content_top_bar">
-            <form method="get" action="{{ url_for('admin.content_list') }}" class="search_form">
+<div class="content_top_bar">
+    <form method="get" action="{{ url_for('admin.content_list') }}" class="search_form">
 
-                <select name="search_type">
-                    <option value="all" {% if search_type==
-                    'all' %}selected{% endif %}>전체</option>
-                    <option value="video_unique_id" {% if search_type==
-                    'video_unique_id' %}selected{% endif %}>번호</option>
-                    <option value="video_title" {% if search_type==
-                    'video_title' %}selected{% endif %}>제목</option>
-                    <option value="video_director" {% if search_type==
-                    'video_director' %}selected{% endif %}>감독</option>
-                    <option value="video_actor" {% if search_type==
-                    'video_actor' %}selected{% endif %}>출연진</option>
-                    <option value="video_age_limit" {% if search_type==
-                    'video_age_limit' %}selected{% endif %}>등급</option>
-                </select>
+        <select name="search_type">
+            <option value="all" {% if search_type == 'all' %}selected{% endif %}>전체</option>
+            <option value="video_unique_id" {% if search_type == 'video_unique_id' %}selected{% endif %}>번호</option>
+            <option value="video_title" {% if search_type == 'video_title' %}selected{% endif %}>제목</option>
+            <option value="video_director" {% if search_type == 'video_director' %}selected{% endif %}>감독</option>
+            <option value="video_actor" {% if search_type == 'video_actor' %}selected{% endif %}>출연진</option>
+            <option value="video_age_limit" {% if search_type == 'video_age_limit' %}selected{% endif %}>등급</option>
+        </select>
 
-                <input type="text"
-                       name="keyword"
-                       value="{{ keyword }}"
-                       placeholder="검색어 입력">
+        <input type="text"
+               name="keyword"
+               value="{{ keyword }}"
+               placeholder="검색어 입력">
 
-                <button type="submit" class="search_btn">검색</button>
+        <button type="submit" class="search_btn">검색</button>
 
-                <a href="{{ url_for('admin.content_list') }}" class="reset_btn">전체보기</a>
+        <a href="{{ url_for('admin.content_list') }}" class="reset_btn">전체보기</a>
 
-            </form>
+    </form>
 
-            <a href="{{ url_for('admin.content_create') }}" class="content_add_btn">
-                콘텐츠 등록
-            </a>
-        </div>
-
-        <table class="admin_table">
-            <thead>
-            <tr>
-                <th>번호</th>
-                <th>제목</th>
-                <th>감독</th>
-                <th>출연진</th>
-                <th>등급</th>
-                <th>등록일</th>
-                <th>관리</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for content in content_list.items %}
-            <tr>
-                <td>{{ content.video_unique_id }}</td>
-                <td>{{ content.video_title }}</td>
-                <td>{{ content.video_director }}</td>
-                <td>{{ content.video_actor }}</td>
-                <td>{{ content.video_age_limit }}</td>
-                <td>{{ content.video_date if content.video_date else '-' }}</td>
-                <td>
-                    <a href="{{ url_for('admin.content_edit', content_id=content.video_unique_id) }}"
-                       class="content_action_btn content_edit_btn">수정</a>
-
-                    <form action="{{ url_for('admin.content_delete', content_id=content.video_unique_id) }}"
-                          method="post"
-                          class="content_delete_form"
-                          onsubmit="return confirm('정말 삭제하시겠습니까?');">
-                        <button type="submit" class="content_action_btn content_delete_btn">삭제</button>
-                    </form>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="7">등록된 콘텐츠가 없습니다.</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <div class="pagination">
-            {% if content_list.has_prev %}
-            <a href="{{ url_for('admin.content_list', page=content_list.prev_num, keyword=keyword, search_type=search_type) }}">이전</a>
-            {% endif %}
-
-            {% for page_num in content_list.iter_pages() %}
-            {% if page_num %}
-            {% if page_num == content_list.page %}
-            <span class="current">{{ page_num }}</span>
-            {% else %}
-            <a href="{{ url_for('admin.content_list', page=page_num, keyword=keyword, search_type=search_type) }}">{{
-                page_num }}</a>
-            {% endif %}
-            {% endif %}
-            {% endfor %}
-
-            {% if content_list.has_next %}
-            <a href="{{ url_for('admin.content_list', page=content_list.next_num, keyword=keyword, search_type=search_type) }}">다음</a>
-            {% endif %}
-        </div>
-    </main>
-
+    <a href="{{ url_for('admin.content_create') }}" class="content_add_btn">
+        콘텐츠 등록
+    </a>
 </div>
 
-</body>
-</html>
+<table class="admin_table">
+    <thead>
+    <tr>
+        <th>번호</th>
+        <th>제목</th>
+        <th>감독</th>
+        <th>출연진</th>
+        <th>등급</th>
+        <th>등록일</th>
+        <th>관리</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for content in content_list.items %}
+    <tr>
+        <td>{{ content.video_unique_id }}</td>
+        <td>{{ content.video_title }}</td>
+        <td>{{ content.video_director }}</td>
+        <td>{{ content.video_actor }}</td>
+        <td>{{ content.video_age_limit }}</td>
+        <td>{{ content.video_date if content.video_date else '-' }}</td>
+        <td>
+            <a href="{{ url_for('admin.content_edit', content_id=content.video_unique_id) }}"
+               class="content_action_btn content_edit_btn">수정</a>
+
+            <form action="{{ url_for('admin.content_delete', content_id=content.video_unique_id) }}"
+                  method="post"
+                  class="content_delete_form"
+                  onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                <button type="submit" class="content_action_btn content_delete_btn">삭제</button>
+            </form>
+        </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="7">등록된 콘텐츠가 없습니다.</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<div class="pagination">
+    {% if content_list.has_prev %}
+    <a href="{{ url_for('admin.content_list', page=content_list.prev_num, keyword=keyword, search_type=search_type) }}">이전</a>
+    {% endif %}
+
+    {% for page_num in content_list.iter_pages() %}
+        {% if page_num %}
+            {% if page_num == content_list.page %}
+                <span class="current">{{ page_num }}</span>
+            {% else %}
+                <a href="{{ url_for('admin.content_list', page=page_num, keyword=keyword, search_type=search_type) }}">
+                    {{ page_num }}
+                </a>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+    {% if content_list.has_next %}
+    <a href="{{ url_for('admin.content_list', page=content_list.next_num, keyword=keyword, search_type=search_type) }}">다음</a>
+    {% endif %}
+</div>
+
+{% endblock %}
