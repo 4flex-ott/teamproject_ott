@@ -1,6 +1,15 @@
 from one import db
 from datetime import datetime, timezone
 from . import login_manager
+from sqlalchemy import MetaData
+
+naming_convention = {
+    "ix": 'ix_%(column_0_label)s',
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(column_0_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
+}
 
 # https://blog.naver.com/red0808/223888577210
 class User (db.Model):
