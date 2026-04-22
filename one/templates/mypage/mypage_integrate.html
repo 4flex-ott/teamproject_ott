@@ -17,7 +17,7 @@
         </p>
 
         <form method="POST" action="{{ url_for('mypage.change_info') }}" class="edit-form"
-              onsubmit="return validatePassword()"
+              onsubmit="return validatePassword()">
             <!-- 이름 -->
             <div class="input-group">
                 <label>이름</label>
@@ -33,7 +33,7 @@
             <!-- 비밀번호 설정 (1차) -->
             <div class="input-group">
                 <label>새 비밀번호 설정</label>
-                <input type="password" name="user_password" id="password1" placeholder="사용할 비밀번호를 입력하세요" required>
+                <input type="password" name="user_password" id="pw1" placeholder="사용할 비밀번호를 입력하세요" required>
             </div>
 
             <!-- 비밀번호 확인 (2차) -->
@@ -96,6 +96,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="{{ url_for('static', filename='js/signup.js') }}"></script>
-<script src="{{ url_for('static', filename='js/mypage_change.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mypage_integrate.js') }}"></script>
 {% endblock %}

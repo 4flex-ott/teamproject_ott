@@ -8,14 +8,15 @@
 {% endblock %}
 
 
+
 {% block content %}
 <div class="mypage-wrapper">
     <div class="top-action-wrapper">
         <div class="right-actions">
             <!-- 현재 페이지임을 나타내기 위해 active 클래스 추가 -->
             {% if user.signup_method == 'email' %}
-            <!-- 일반 이메일 유저는 바로 이동 -->
-            <a href="{{ url_for('mypage.change_info') }}" class="action-btn active">회원정보 수정</a>
+                <!-- 일반 이메일 유저는 바로 이동 -->
+                <a href="{{ url_for('mypage.change_info') }}" class="action-btn active">회원정보 수정</a>
             {% else %}
             <!-- 소셜 유저는 클릭 시 확인창 실행 -->
             <a href="#" onclick="confirmIntegration('{{ user.signup_method }}')" class="action-btn active">회원정보 수정</a>
@@ -28,7 +29,7 @@
     <!-- 회원정보 수정 섹션 추가 -->
     <section class="change-info-section">
         <div class="change-card">
-            {# 뭔소린지 모르겠음; #}
+{#    뭔소린지 모르겠음;    #}
             {% with messages = get_flashed_messages(category_filter=["danger"]) %}
             {% if messages %}
             {% for message in messages %}
@@ -107,8 +108,8 @@
 {% endblock %}
 
 
+
+
 {% block script %}
 <script src="{{ url_for('static', filename='js/mypage_change.js') }}"></script>
-<script src="{{ url_for('static', filename='js/signup.js') }}"></script>
-
 {% endblock %}

@@ -1,5 +1,5 @@
 
-from flask import Blueprint, redirect, render_template, url_for, session
+from flask import Blueprint, redirect, render_template, url_for, session, flash
 from ..models import Video, Plan
 
 bp = Blueprint('home', __name__, url_prefix='/')
@@ -44,5 +44,17 @@ def entertainment():
 @bp.route('/anime')
 def anime():
     return render_template('main/anime.html')
+
+
+@bp.route('/support_check')
+def support_check():
+    # 1. 세션에 유저 정보가 있는지 확인
+    if session.get('user'):
+        # 2. 로그인 상태면 고객센터 페이지로 (mypage 블루프린트의 support_center 함수)
+        return redirect(url_for('mypage.support_center'))
+    else:
+        # 3. 로그인 안 되어 있으면 로그인 페이지로 (auth 블루프린트의 login 함수)
+        flash("로그인이 필요한 서비스입니다.", "info")
+        return redirect(url_for('auth.login'))
 
 
