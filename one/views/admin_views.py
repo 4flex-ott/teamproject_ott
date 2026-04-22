@@ -1,16 +1,18 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, current_app
 from sqlalchemy import or_
 from one import db
 from one.models import User, Video, Support, Review, SupportAnswer, Notice
 from datetime import datetime
-
 import os
+import re
 from werkzeug.utils import secure_filename
-from flask import current_app
 
 ALLOWED_VIDEO_EXTENSIONS = {'mp4'}
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 
+def clean_prefixed_filename(filename):
+    filename = secure_filename(filename)
+    return re.sub(r'^(?:\d+_)+', '', filename)
 
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
@@ -53,6 +55,7 @@ def admin_main():
         inquiry_pending_count=inquiry_pending_count,
         review_count=review_count
     )
+
 
 # ================= 회원 관리 =================
 @bp.route('/members')
@@ -202,46 +205,13 @@ def content_create():
         if video_date_str:
             video_date = datetime.strptime(video_date_str, '%Y-%m-%d').date()
 
-        thumbnail_path = None
-        if thumbnail_file and thumbnail_file.filename != '':
-            if allowed_file(thumbnail_file.filename, ALLOWED_IMAGE_EXTENSIONS):
-                thumb_filename = get_unique_filename(
-                    current_app.config['UPLOAD_FOLDER_THUMBNAILS'],
-                    thumbnail_file.filename
-                )
-
-                thumb_save_path = os.path.join(
-                    current_app.config['UPLOAD_FOLDER_THUMBNAILS'],
-                    thumb_filename
-                )
-                thumbnail_file.save(thumb_save_path)
-
-                thumbnail_path = f"/static/uploads/thumbnails/{thumb_filename}"
-
-        video_path = None
-        if video_file and video_file.filename != '':
-            if allowed_file(video_file.filename, ALLOWED_VIDEO_EXTENSIONS):
-                video_filename = get_unique_filename(
-                    current_app.config['UPLOAD_FOLDER_VIDEOS'],
-                    video_file.filename
-                )
-
-                video_save_path = os.path.join(
-                    current_app.config['UPLOAD_FOLDER_VIDEOS'],
-                    video_filename
-                )
-                video_file.save(video_save_path)
-
-                video_path = f"/static/uploads/videos/{video_filename}"
-
+        # 먼저 DB 저장해서 ID 확보
         new_video = Video(
             video_title=video_title,
             video_director=video_director,
             video_actor=video_actor,
             video_age_limit=video_age_limit,
             video_date=video_date,
-            video_url=video_path,
-            video_thumbnail=thumbnail_path,
             video_synopsis=video_synopsis,
             video_genres=video_genres,
             video_is_movie=video_is_movie,
@@ -250,13 +220,59 @@ def content_create():
 
         db.session.add(new_video)
         db.session.commit()
+
+        content_id = new_video.video_unique_id
+
+        # ---------------- 썸네일 ----------------
+        if thumbnail_file and thumbnail_file.filename != '':
+            if allowed_file(thumbnail_file.filename, ALLOWED_IMAGE_EXTENSIONS):
+
+                original_name = clean_prefixed_filename(thumbnail_file.filename)
+                thumb_filename = f"{content_id}_{original_name}"
+
+                thumb_folder = current_app.config['UPLOAD_FOLDER_THUMBNAILS']
+                os.makedirs(thumb_folder, exist_ok=True)
+
+                thumb_path = os.path.abspath(os.path.join(thumb_folder, thumb_filename))
+
+                # 기존 파일 제거 (경로 정규화 비교)
+                if os.path.exists(thumb_path):
+                    try:
+                        os.remove(thumb_path)
+                    except PermissionError:
+                        pass
+
+                thumbnail_file.save(thumb_path)
+                new_video.video_thumbnail = f"/static/uploads/thumbnails/{thumb_filename}"
+
+        # ---------------- 영상 ----------------
+        if video_file and video_file.filename != '':
+            if allowed_file(video_file.filename, ALLOWED_VIDEO_EXTENSIONS):
+
+                original_name = clean_prefixed_filename(video_file.filename)
+                video_filename = f"{content_id}_{original_name}"
+
+                video_folder = current_app.config['UPLOAD_FOLDER_VIDEOS']
+                os.makedirs(video_folder, exist_ok=True)
+
+                video_path = os.path.abspath(os.path.join(video_folder, video_filename))
+
+                # 기존 파일 제거
+                if os.path.exists(video_path):
+                    try:
+                        os.remove(video_path)
+                    except PermissionError:
+                        pass
+
+                video_file.save(video_path)
+                new_video.video_url = f"/static/uploads/videos/{video_filename}"
+
+        db.session.commit()
+
+        flash('콘텐츠가 등록되었습니다.')
         return redirect(url_for('admin.content_list'))
 
-    return render_template(
-        'admin/content_form.html',
-        mode='edit',
-        content=None
-    )
+    return render_template('admin/content_form.html', mode='create', content=None)
 
 
 # ================= 콘텐츠 수정 =================
@@ -265,45 +281,78 @@ def content_edit(content_id):
     content = Video.query.get_or_404(content_id)
 
     if request.method == 'POST':
-        content.title = request.form.get('title')
-        content.description = request.form.get('description')
-        content.genre = request.form.get('genre')
-        content.age_rating = request.form.get('age_rating')
+        content.video_title = request.form.get('video_title', '').strip()
+        content.video_director = request.form.get('video_director', '').strip()
+        content.video_actor = request.form.get('video_actor', '').strip()
+        content.video_age_limit = request.form.get('video_age_limit', '').strip()
+
+        video_date_str = request.form.get('video_date', '').strip()
+        content.video_date = datetime.strptime(video_date_str, '%Y-%m-%d').date() if video_date_str else None
+
+        content.video_synopsis = request.form.get('video_synopsis', '').strip()
+        content.video_genres = request.form.get('video_genres', '').strip()
+        content.video_is_movie = request.form.get('video_is_movie') == 'True'
 
         video_file = request.files.get('video_file')
         thumbnail_file = request.files.get('thumbnail_file')
 
-        # ---------------- 영상 파일 처리 ----------------
+        # ---------------- 영상 ----------------
         if video_file and video_file.filename:
-            video_filename = secure_filename(video_file.filename)
-            video_upload_path = os.path.join(current_app.root_path, 'static', 'uploads', 'videos')
-            os.makedirs(video_upload_path, exist_ok=True)
+            if allowed_file(video_file.filename, ALLOWED_VIDEO_EXTENSIONS):
 
-            # 기존 영상 파일 삭제
-            if content.video_url:
-                old_video_path = os.path.join(current_app.root_path, content.video_url.lstrip('/'))
-                if os.path.exists(old_video_path):
-                    os.remove(old_video_path)
+                original_name = clean_prefixed_filename(video_file.filename)
+                video_filename = f"{content.video_unique_id}_{original_name}"
 
-            # 새 영상 파일 저장
-            video_file.save(os.path.join(video_upload_path, video_filename))
-            content.video_url = f'/static/uploads/videos/{video_filename}'
+                video_folder = current_app.config['UPLOAD_FOLDER_VIDEOS']
+                os.makedirs(video_folder, exist_ok=True)
 
-        # ---------------- 썸네일 파일 처리 ----------------
+                new_path = os.path.abspath(os.path.join(video_folder, video_filename))
+                old_path = None
+
+                if content.video_url:
+                    old_path = os.path.abspath(
+                        os.path.join(current_app.root_path, content.video_url.lstrip('/'))
+                    )
+
+                # 다른 파일일 때만 삭제
+                if old_path and os.path.exists(old_path):
+                    if os.path.normcase(os.path.normpath(old_path)) != os.path.normcase(os.path.normpath(new_path)):
+                        try:
+                            os.remove(old_path)
+                        except PermissionError:
+                            pass
+
+                video_file.save(new_path)
+                content.video_url = f"/static/uploads/videos/{video_filename}"
+
+        # ---------------- 썸네일 ----------------
         if thumbnail_file and thumbnail_file.filename:
-            thumbnail_filename = secure_filename(thumbnail_file.filename)
-            thumbnail_upload_path = os.path.join(current_app.root_path, 'static', 'uploads', 'thumbnails')
-            os.makedirs(thumbnail_upload_path, exist_ok=True)
+            if allowed_file(thumbnail_file.filename, ALLOWED_IMAGE_EXTENSIONS):
 
-            # 기존 썸네일 파일 삭제
-            if content.video_thumbnail:
-                old_thumbnail_path = os.path.join(current_app.root_path, content.video_thumbnail.lstrip('/'))
-                if os.path.exists(old_thumbnail_path):
-                    os.remove(old_thumbnail_path)
+                original_name = clean_prefixed_filename(thumbnail_file.filename)
+                thumb_filename = f"{content.video_unique_id}_{original_name}"
 
-            # 새 썸네일 파일 저장
-            thumbnail_file.save(os.path.join(thumbnail_upload_path, thumbnail_filename))
-            content.video_thumbnail = f'/static/uploads/thumbnails/{thumbnail_filename}'
+                thumb_folder = current_app.config['UPLOAD_FOLDER_THUMBNAILS']
+                os.makedirs(thumb_folder, exist_ok=True)
+
+                new_path = os.path.abspath(os.path.join(thumb_folder, thumb_filename))
+                old_path = None
+
+                if content.video_thumbnail:
+                    old_path = os.path.abspath(
+                        os.path.join(current_app.root_path, content.video_thumbnail.lstrip('/'))
+                    )
+
+                # 다른 파일일 때만 삭제
+                if old_path and os.path.exists(old_path):
+                    if os.path.normcase(os.path.normpath(old_path)) != os.path.normcase(os.path.normpath(new_path)):
+                        try:
+                            os.remove(old_path)
+                        except PermissionError:
+                            pass
+
+                thumbnail_file.save(new_path)
+                content.video_thumbnail = f"/static/uploads/thumbnails/{thumb_filename}"
 
         db.session.commit()
         flash('콘텐츠가 수정되었습니다.')
@@ -317,17 +366,23 @@ def content_edit(content_id):
 def content_delete(content_id):
     content = Video.query.get_or_404(content_id)
 
-    # 영상 파일 삭제
+    # 영상 삭제
     if content.video_url:
         video_path = os.path.join(current_app.root_path, content.video_url.lstrip('/'))
         if os.path.exists(video_path):
-            os.remove(video_path)
+            try:
+                os.remove(video_path)
+            except PermissionError:
+                pass
 
-    # 썸네일 파일 삭제
+    # 썸네일 삭제
     if content.video_thumbnail:
         thumbnail_path = os.path.join(current_app.root_path, content.video_thumbnail.lstrip('/'))
         if os.path.exists(thumbnail_path):
-            os.remove(thumbnail_path)
+            try:
+                os.remove(thumbnail_path)
+            except PermissionError:
+                pass
 
     db.session.delete(content)
     db.session.commit()
@@ -391,8 +446,7 @@ def notice_create():
             content=content,
             is_pinned=is_pinned,
             view_count=0,
-            admin_unique_id=1  # 임시 (로그인 붙이면 아래 주석으로 바꿔야됨)
-            # admin_unique_id = session['admin_id']
+            admin_unique_id=session['admin_user']
         )
 
         db.session.add(notice)
