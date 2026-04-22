@@ -10,6 +10,7 @@ import json # 상단에 추가
 from one.models import User, Support, SupportAnswer, Plan, Subscription, Payment, Notice
 from one import db
 import base64  # 토스 API 인증용
+from one.forms import UserCreateForm
 
 
 
@@ -38,12 +39,18 @@ def change_info():
     user_unique_id = session.get('user')
     user_data = User.query.get_or_404(user_unique_id)
 
-    # --- [GET 요청 처리: 페이지 분기] ---
-    if request.method == 'GET':
-        # 소셜 유저(kakao, naver)이면서 이름이나 전화번호가 없는 경우 -> 통합 페이지로
-        if user_data.signup_method in ['naver', 'kakao']:
-            if not user_data.user_password or not user_data.user_name or not user_data.user_phone:
-                return render_template('mypage/mypage_integrate.html', user=user_data)
+    form = UserCreateForm()
+
+    if request.method == 'GET' and user_data.user_birth:
+        form.birth_year.data = str(user_data.user_birth.year)
+        form.birth_month.data = str(user_data.user_birth.month)
+        form.birth_day.data = str(user_data.user_birth.day)
+
+    # 1. 소셜 유저 필수 정보 확인 (GET 요청 시)
+    if user_data.signup_method in ['naver', 'kakao'] and request.method == 'GET':
+        if not user_data.user_name or not user_data.user_phone:
+            return render_template('mypage/mypage_integrate.html', user=user_data,form=form)
+
 
         # 그 외(일반 유저 또는 이미 정보를 입력한 소셜 유저) -> 일반 수정 페이지로
         return render_template('mypage/mypage_change.html', user=user_data)
@@ -97,7 +104,9 @@ def change_info():
             db.session.rollback()
             print(f"❌ DB 저장 에러: {e}")
             flash('저장 중 오류가 발생했습니다.', 'danger')
-            return redirect(url_for('mypage.change_info'))
+
+    return render_template('mypage/mypage_change.html', user=user_data,form=form)
+
 
 @bp.route('/support/write', methods=['GET', 'POST'])
 def support_write():

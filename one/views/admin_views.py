@@ -38,7 +38,6 @@ bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @bp.route('/')
 def admin_main():
-    # 💡 세션에 관리자 플래그가 없거나 False인 경우 쫓아냄
     if not session.get('is_admin'):
         flash("관리자 권한이 없습니다.", "error")
         return redirect(url_for('auth.login'))
@@ -48,12 +47,15 @@ def admin_main():
     inquiry_pending_count = Support.query.filter_by(status='pending').count()
     review_count = Review.query.count()
 
+    show_admin_login_success = session.pop('show_admin_login_success', False)
+
     return render_template(
         'admin/admin_main.html',
         user_count=user_count,
         content_count=content_count,
         inquiry_pending_count=inquiry_pending_count,
-        review_count=review_count
+        review_count=review_count,
+        show_admin_login_success=show_admin_login_success
     )
 
 

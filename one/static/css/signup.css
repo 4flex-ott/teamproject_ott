@@ -1,22 +1,48 @@
-.gender-btn {
-    background-color: #3f474d;
-    color: #aaa;
-    border-radius: 8px;
-    cursor: pointer;
+.btn-signup {
+    width: 100%;
+    border-radius: 6px;
+    padding: 12px;
+
+    background: #ff153c;   /* 🔥 메인 빨강 */
+    color: #fff;
+    border: none;
+
+    font-weight: 600;
     transition: all 0.2s ease;
 }
 
-.gender-btn.active {
-    background-color: #0056ff !important;
-    color: #fff !important;
+/* hover */
+.btn-signup:hover {
+    background: #e01335;   /* 🔥 살짝 눌린 빨강 (고급 느낌) */
+}
+
+/* 클릭 */
+.btn-signup:active {
+    transform: scale(0.97);
+}
+
+/* hover */
+.gender-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 52px;
+    border-radius: 12px;
+
+    background: #333b41;
+    color: #aaa;
+
+    transition: all 0.2s ease;
 }
 
 .gender-btn:hover {
-    background-color: #3f4950;
-    color: #ddd;
+    background: rgba(255,255,255,0.07);
+    color: #fff;
 }
 
-.gender-btn.active:hover {
-    background-color: #0056ff;
+input:checked + .gender-btn {
+    background: #4a545c;
     color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }

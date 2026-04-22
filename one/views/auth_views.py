@@ -219,8 +219,7 @@ def login():
             session['admin_user'] = admin.admin_unique_id
             session['admin_name'] = admin.admin_name
             session['is_admin'] = True  # 관리자 여부 플래그
-
-            flash(f"{admin.admin_name} 관리자님, 환영합니다.", "success")
+            session['show_admin_login_success'] = True
             return redirect(url_for('admin.admin_main'))  # 관리자 메인 페이지로 이동
 
         # 2. 관리자가 아니면 일반 유저(User) 테이블 확인
@@ -244,13 +243,24 @@ def login():
 
 @bp.route('/logout')
 def logout():
-    access_token = session.get('kakao_token')
-
-    if access_token:
+    # 카카오 로그아웃
+    kakao_token = session.get('kakao_token')
+    if kakao_token:
         requests.post(
             "https://kapi.kakao.com/v1/user/logout",
-            headers={"Authorization": f"Bearer {access_token}"}
+            headers={"Authorization": f"Bearer {kakao_token}"}
         )
+
+    # 네이버 로그아웃
+    naver_token = session.get('naver_token')
+    if naver_token:
+        requests.get("https://nid.naver.com/oauth2.0/token", params={
+            "grant_type": "delete",
+            "client_id": NAVER_CLIENT_ID,
+            "client_secret": NAVER_CLIENT_SECRET,
+            "access_token": naver_token,
+            "service_provider": "NAVER"
+        })
 
     session.clear()
     flash("로그아웃되었습니다.", "success")

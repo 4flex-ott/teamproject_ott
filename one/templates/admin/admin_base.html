@@ -62,8 +62,8 @@
         <div class="admin_topbar">
             {% if session.get('is_admin') %}
             <span class="admin_name">
-                    {{ session.get('admin_name') }}님
-                </span>
+                {{ session.get('admin_name') }}님
+            </span>
             <a href="{{ url_for('auth.logout') }}" class="btn_logout">로그아웃</a>
             {% endif %}
         </div>
@@ -75,6 +75,8 @@
     </main>
 
 </div>
+
+{% block scripts %}{% endblock %}
 
 </body>
 </html>

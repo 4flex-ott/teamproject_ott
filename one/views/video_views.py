@@ -8,7 +8,7 @@ bp = Blueprint('video', __name__, url_prefix='/video')
 @bp.route('/list')
 def list():
     video_list = Video.query.order_by(Video.video_unique_id.desc()).all()
-    return render_template('main.html', video_list=video_list)
+    return render_template('main/main.html', video_list=video_list)
 
 
 # 상세(재생) 페이지
