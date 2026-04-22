@@ -1,118 +1,89 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>문의 관리</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-</head>
-<body>
+{% extends 'admin/admin_base.html' %}
 
-<div class="admin_wrap">
+{% block title %}문의 관리{% endblock %}
 
-    <aside class="admin_sidebar">
-        <h2>
-            <a href="{{ url_for('admin.admin_main') }}" class="admin_title">관리자</a>
-        </h2>
-        <ul>
-            <li><a href="{{ url_for('admin.member_list') }}">회원 관리</a></li>
-            <li><a href="{{ url_for('admin.content_list') }}">콘텐츠 관리</a></li>
-            <li><a href="{{ url_for('admin.inquiry_list') }}" class="active">문의 관리</a></li>
-            <li><a href="{{ url_for('admin.review_list') }}">리뷰 관리</a></li>
-            <li><a href="{{ url_for('admin.notice_list') }}">공지사항 관리</a></li>
-        </ul>
-    </aside>
+{% block content %}
 
-    <main class="admin_content">
-        <h1>문의 관리</h1>
+<h1>문의 관리</h1>
 
-        <form method="get" action="{{ url_for('admin.inquiry_list') }}" class="search_form">
-            <select name="search_type">
-                <option value="all" {% if search_type==
-                'all' %}selected{% endif %}>전체</option>
-                <option value="support_id" {% if search_type==
-                'support_id' %}selected{% endif %}>번호</option>
-                <option value="user_email" {% if search_type==
-                'user_email' %}selected{% endif %}>이메일</option>
-                <option value="category" {% if search_type==
-                'category' %}selected{% endif %}>카테고리</option>
-                <option value="title" {% if search_type==
-                'title' %}selected{% endif %}>제목</option>
-                <option value="content" {% if search_type==
-                'content' %}selected{% endif %}>내용</option>
-                <option value="status" {% if search_type==
-                'status' %}selected{% endif %}>상태</option>
-            </select>
+<form method="get" action="{{ url_for('admin.inquiry_list') }}" class="search_form">
+    <select name="search_type">
+        <option value="all" {% if search_type == 'all' %}selected{% endif %}>전체</option>
+        <option value="support_id" {% if search_type == 'support_id' %}selected{% endif %}>번호</option>
+        <option value="user_email" {% if search_type == 'user_email' %}selected{% endif %}>이메일</option>
+        <option value="category" {% if search_type == 'category' %}selected{% endif %}>카테고리</option>
+        <option value="title" {% if search_type == 'title' %}selected{% endif %}>제목</option>
+        <option value="content" {% if search_type == 'content' %}selected{% endif %}>내용</option>
+        <option value="status" {% if search_type == 'status' %}selected{% endif %}>상태</option>
+    </select>
 
-            <input type="text" name="keyword" value="{{ keyword }}" placeholder="검색어 입력">
-            <button type="submit" class="search_btn">검색</button>
-            <a href="{{ url_for('admin.inquiry_list') }}" class="reset_btn">전체보기</a>
-        </form>
+    <input type="text" name="keyword" value="{{ keyword }}" placeholder="검색어 입력">
+    <button type="submit" class="search_btn">검색</button>
+    <a href="{{ url_for('admin.inquiry_list') }}" class="reset_btn">전체보기</a>
+</form>
 
-        <table class="admin_table inquiry_table">
-            <thead>
-            <tr>
-                <th>번호</th>
-                <th>이메일</th>
-                <th>카테고리</th>
-                <th>제목</th>
-                <th>작성일</th>
-                <th>상태</th>
-                <th>상세</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for inquiry in inquiry_list.items %}
-            <tr>
-                <td>{{ inquiry.support_id }}</td>
-                <td>{{ inquiry.user.user_email if inquiry.user and inquiry.user.user_email else '-' }}</td>
-                <td>{{ inquiry.category if inquiry.category else '-' }}</td>
-                <td>{{ inquiry.title if inquiry.title else '-' }}</td>
-                <td>{{ inquiry.created_at.strftime('%Y-%m-%d') if inquiry.created_at else '-' }}</td>
-                <td>
-                    {% if inquiry.status == 'pending' %}
-                    <span class="status_pending">답변 전</span>
-                    {% elif inquiry.status == 'completed' %}
-                    <span class="status_completed">답변 완료</span>
-                    {% else %}
-                    -
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{{ url_for('admin.inquiry_detail', support_id=inquiry.support_id) }}"
-                       class="content_action_btn content_edit_btn">상세</a>
-                </td>
-            </tr>
+<table class="admin_table inquiry_table">
+    <thead>
+    <tr>
+        <th>번호</th>
+        <th>이메일</th>
+        <th>카테고리</th>
+        <th>제목</th>
+        <th>작성일</th>
+        <th>상태</th>
+        <th>상세</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for inquiry in inquiry_list.items %}
+    <tr>
+        <td>{{ inquiry.support_id }}</td>
+        <td>{{ inquiry.user.user_email if inquiry.user and inquiry.user.user_email else '-' }}</td>
+        <td>{{ inquiry.category if inquiry.category else '-' }}</td>
+        <td>{{ inquiry.title if inquiry.title else '-' }}</td>
+        <td>{{ inquiry.created_at.strftime('%Y-%m-%d') if inquiry.created_at else '-' }}</td>
+        <td>
+            {% if inquiry.status == 'pending' %}
+                <span class="status_pending">답변 전</span>
+            {% elif inquiry.status == 'completed' %}
+                <span class="status_completed">답변 완료</span>
             {% else %}
-            <tr>
-                <td colspan="7">문의 내역이 없습니다.</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <div class="pagination">
-            {% if inquiry_list.has_prev %}
-            <a href="{{ url_for('admin.inquiry_list', page=inquiry_list.prev_num, keyword=keyword, search_type=search_type) }}">이전</a>
+                -
             {% endif %}
+        </td>
+        <td>
+            <a href="{{ url_for('admin.inquiry_detail', support_id=inquiry.support_id) }}"
+               class="content_action_btn content_edit_btn">상세</a>
+        </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="7">문의 내역이 없습니다.</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
 
-            {% for page_num in inquiry_list.iter_pages() %}
-            {% if page_num %}
+<div class="pagination">
+    {% if inquiry_list.has_prev %}
+    <a href="{{ url_for('admin.inquiry_list', page=inquiry_list.prev_num, keyword=keyword, search_type=search_type) }}">이전</a>
+    {% endif %}
+
+    {% for page_num in inquiry_list.iter_pages() %}
+        {% if page_num %}
             {% if page_num == inquiry_list.page %}
-            <span class="current">{{ page_num }}</span>
+                <span class="current">{{ page_num }}</span>
             {% else %}
-            <a href="{{ url_for('admin.inquiry_list', page=page_num, keyword=keyword, search_type=search_type) }}">{{
-                page_num }}</a>
+                <a href="{{ url_for('admin.inquiry_list', page=page_num, keyword=keyword, search_type=search_type) }}">
+                    {{ page_num }}
+                </a>
             {% endif %}
-            {% endif %}
-            {% endfor %}
+        {% endif %}
+    {% endfor %}
 
-            {% if inquiry_list.has_next %}
-            <a href="{{ url_for('admin.inquiry_list', page=inquiry_list.next_num, keyword=keyword, search_type=search_type) }}">다음</a>
-            {% endif %}
-        </div>
-    </main>
-
+    {% if inquiry_list.has_next %}
+    <a href="{{ url_for('admin.inquiry_list', page=inquiry_list.next_num, keyword=keyword, search_type=search_type) }}">다음</a>
+    {% endif %}
 </div>
 
-</body>
-</html>
+{% endblock %}

@@ -1,16 +1,18 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, current_app
 from sqlalchemy import or_
 from one import db
 from one.models import User, Video, Support, Review, SupportAnswer, Notice
 from datetime import datetime
-
-import os, uuid
+import os
+import re
 from werkzeug.utils import secure_filename
-from flask import current_app
 
 ALLOWED_VIDEO_EXTENSIONS = {'mp4'}
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 
+def clean_prefixed_filename(filename):
+    filename = secure_filename(filename)
+    return re.sub(r'^(?:\d+_)+', '', filename)
 
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
@@ -36,7 +38,6 @@ bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @bp.route('/')
 def admin_main():
-    # 💡 세션에 관리자 플래그가 없거나 False인 경우 쫓아냄
     if not session.get('is_admin'):
         flash("관리자 권한이 없습니다.", "error")
         return redirect(url_for('auth.login'))
@@ -46,13 +47,17 @@ def admin_main():
     inquiry_pending_count = Support.query.filter_by(status='pending').count()
     review_count = Review.query.count()
 
+    show_admin_login_success = session.pop('show_admin_login_success', False)
+
     return render_template(
         'admin/admin_main.html',
         user_count=user_count,
         content_count=content_count,
         inquiry_pending_count=inquiry_pending_count,
-        review_count=review_count
+        review_count=review_count,
+        show_admin_login_success=show_admin_login_success
     )
+
 
 # ================= 회원 관리 =================
 @bp.route('/members')
@@ -442,8 +447,7 @@ def notice_create():
             content=content,
             is_pinned=is_pinned,
             view_count=0,
-            admin_unique_id=1  # 임시 (로그인 붙이면 아래 주석으로 바꿔야됨)
-            # admin_unique_id = session['admin_id']
+            admin_unique_id=session['admin_user']
         )
 
         db.session.add(notice)

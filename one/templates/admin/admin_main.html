@@ -1,113 +1,86 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>관리자 페이지</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-</head>
-<body>
+{% extends 'admin/admin_base.html' %}
 
-<div class="admin_wrap">
+{% block title %}관리자 대시보드{% endblock %}
 
-    <aside class="admin_sidebar">
+{% block content %}
+<h1>관리자 대시보드</h1>
 
-        <h2>
-            <a href="{{ url_for('admin.admin_main') }}" class="admin_title">관리자</a>
-        </h2>
+<div class="dashboard_cards">
 
-        <ul>
-            <li><a href="{{ url_for('admin.member_list') }}">회원 관리</a></li>
-            <li><a href="{{ url_for('admin.content_list') }}">콘텐츠 관리</a></li>
-            <li><a href="{{ url_for('admin.inquiry_list') }}">문의 관리</a></li>
-            <li><a href="{{ url_for('admin.review_list') }}">리뷰 관리</a></li>
-            <li><a href="{{ url_for('admin.notice_list') }}">공지사항 관리</a></li>
-        </ul>
-    </aside>
+    <div class="dashboard_card">
+        <p>전체 회원 수</p>
+        <h2>{{ user_count }}</h2>
+    </div>
 
-    <main class="admin_content">
-        <h1>관리자 대시보드</h1>
+    <div class="dashboard_card">
+        <p>전체 콘텐츠 수</p>
+        <h2>{{ content_count }}</h2>
+    </div>
 
-        <div class="dashboard_cards">
+    <div class="dashboard_card highlight"
+         onclick="location.href='{{ url_for('admin.inquiry_list') }}'"
+         style="cursor:pointer;">
+        <p>답변 전 문의 수</p>
+        <h2>{{ inquiry_pending_count }}</h2>
+    </div>
 
-            <div class="dashboard_card">
-                <p>전체 회원 수</p>
-                <h2>{{ user_count }}</h2>
-            </div>
-
-            <div class="dashboard_card">
-                <p>전체 콘텐츠 수</p>
-                <h2>{{ content_count }}</h2>
-            </div>
-
-            <div class="dashboard_card highlight"
-                 onclick="location.href='{{ url_for('admin.inquiry_list') }}'"
-                 style="cursor:pointer;">
-                <p>답변 전 문의 수</p>
-                <h2>{{ inquiry_pending_count }}</h2>
-            </div>
-
-            <div class="dashboard_card">
-                <p>전체 리뷰 수</p>
-                <h2>{{ review_count }}</h2>
-            </div>
-
-        </div>
-        <div class="admin_cards">
-            <div class="card">
-                <h3>회원 관리</h3>
-                <p>회원목록 확인 및 상태변경</p>
-                <a href="{{ url_for('admin.member_list') }}">바로가기</a>
-            </div>
-
-            <div class="card">
-                <h3>콘텐츠 관리</h3>
-                <p>영화 / 시리즈 등록, 수정, 삭제</p>
-                <a href="{{ url_for('admin.content_list') }}">바로가기</a>
-            </div>
-
-            <div class="card">
-                <h3>문의 관리</h3>
-                <p>고객문의 확인 및 답변</p>
-                <a href="{{ url_for('admin.inquiry_list') }}">바로가기</a>
-            </div>
-
-            <div class="card">
-                <h3>리뷰 관리</h3>
-                <p>리뷰확인 및 삭제</p>
-                <a href="{{ url_for('admin.review_list') }}">바로가기</a>
-            </div>
-
-            <div class="card">
-                <h3>공지사항 관리</h3>
-                <p>공지사항 등록, 수정, 삭제</p>
-                <a href="{{ url_for('admin.notice_list') }}">바로가기</a>
-            </div>
-        </div>
-    </main>
+    <div class="dashboard_card">
+        <p>전체 리뷰 수</p>
+        <h2>{{ review_count }}</h2>
+    </div>
 
 </div>
 
-</body>
+<div class="admin_cards">
+    <div class="card">
+        <h3>회원 관리</h3>
+        <p>회원목록 확인 및 상태변경</p>
+        <a href="{{ url_for('admin.member_list') }}">바로가기</a>
+    </div>
+
+    <div class="card">
+        <h3>콘텐츠 관리</h3>
+        <p>영화 / 시리즈 등록, 수정, 삭제</p>
+        <a href="{{ url_for('admin.content_list') }}">바로가기</a>
+    </div>
+
+    <div class="card">
+        <h3>문의 관리</h3>
+        <p>고객문의 확인 및 답변</p>
+        <a href="{{ url_for('admin.inquiry_list') }}">바로가기</a>
+    </div>
+
+    <div class="card">
+        <h3>리뷰 관리</h3>
+        <p>리뷰확인 및 삭제</p>
+        <a href="{{ url_for('admin.review_list') }}">바로가기</a>
+    </div>
+
+    <div class="card">
+        <h3>공지사항 관리</h3>
+        <p>공지사항 등록, 수정, 삭제</p>
+        <a href="{{ url_for('admin.notice_list') }}">바로가기</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    {% if session.get('show_admin_login_success') %}
-        {# 세션 데이터 즉시 제거 (새로고침 시 다시 뜨지 않게 함) #}
-        {% set _ = session.pop('show_admin_login_success') %}
-
-        Swal.fire({
-            title: '관리자 인증 성공!',
-            text: '{{ session.admin_name }}님, 환영합니다.',
-            icon: 'success',
-            width: '360px',
-            background: '#1a1a1a',
-            color: '#fff',
-            confirmButtonText: '확인',
-            confirmButtonColor: '#ff153c'
-        });
+    {% if show_admin_login_success %}
+    Swal.fire({
+        title: '관리자 인증 성공!',
+        text: '{{ session.get("admin_name", "") }}님, 환영합니다.',
+        icon: 'success',
+        width: '360px',
+        background: '#1a1a1a',
+        color: '#fff',
+        confirmButtonText: '확인',
+        confirmButtonColor: '#ff153c'
+    });
     {% endif %}
 });
 </script>
-</html>
+{% endblock %}
