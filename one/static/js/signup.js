@@ -73,39 +73,95 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // ===== 비밀번호 =====
-    const password1 = document.getElementById("password1");
-    const password2 = document.getElementById("password2");
+       // ===== 비밀번호 =====
+    const password1 =
+        document.getElementById("password1") ||
+        document.getElementById("new_pw");
+
+    const password2 =
+        document.getElementById("password2") ||
+        document.getElementById("confirm_pw");
+
     const errorEl = document.getElementById("pw-error");
-    const matchMsg = document.getElementById("password-match-msg");
 
-    if (password1 && password2) {
+    const matchMsg =
+        document.getElementById("password-match-msg") ||
+        document.getElementById("match_msg");
 
-        // 🔹 조건 체크
+    const bar = document.getElementById("pw-strength-bar");
+    const pwBarWrap = document.querySelector(".pw-bar");
+
+    const form = document.querySelector("form");
+
+    if (password1) {
+
+        // ===== 비밀번호 조건 검사 함수 (핵심) =====
+        function validatePassword(pw) {
+            return {
+                lengthOk: pw.length >= 10,
+                upperOk: /[A-Z]/.test(pw),
+                lowerOk: /[a-z]/.test(pw),
+                numOk: /[0-9]/.test(pw),
+                specialOk: /[^A-Za-z0-9]/.test(pw)
+            };
+        }
+
+        // ===== 비밀번호 강도 체크 =====
         function checkPasswordStrength() {
             const pw = password1.value;
 
-            const lengthOk = pw.length >= 8;
-            const engOk = /[A-Za-z]/.test(pw);
-            const numOk = /[0-9]/.test(pw);
-            const specialOk = /[!@#$%^&*]/.test(pw);
+            // 게이지 활성화
+            if (pwBarWrap) {
+                pw ? pwBarWrap.classList.add("active") : pwBarWrap.classList.remove("active");
+            }
 
             if (!pw) {
-                errorEl.textContent = "";
+                if (errorEl) errorEl.textContent = "";
+                if (bar) bar.style.width = "0%";
                 return;
             }
 
-            if (lengthOk && engOk && numOk && specialOk) {
-                errorEl.textContent = "사용 가능한 비밀번호입니다.";
-                errorEl.style.color = "#00ff9d";
-            } else {
-                errorEl.textContent = "영문, 숫자, 특수문자를 포함한 8자 이상으로 입력해주세요.";
-                errorEl.style.color = "#ff4d4d";
+            const v = validatePassword(pw);
+
+            let score = 0;
+            if (v.lengthOk) score++;
+            if (v.upperOk) score++;
+            if (v.lowerOk) score++;
+            if (v.numOk) score++;
+            if (v.specialOk) score++;
+
+            // ===== 게이지 =====
+            if (bar) {
+                bar.style.width = (score * 20) + "%";
+
+                if (score <= 2) bar.style.backgroundColor = "#ff4d4d";
+                else if (score === 3) bar.style.backgroundColor = "#ffa500";
+                else if (score === 4) bar.style.backgroundColor = "#00c853";
+                else if (score === 5) bar.style.backgroundColor = "#00ff9d";
+            }
+
+            // ===== 메시지 =====
+            if (errorEl) {
+                if (score <= 2) {
+                    errorEl.textContent = "보안등급: 약함";
+                    errorEl.style.color = "#ff4d4d";
+                } else if (score === 3) {
+                    errorEl.textContent = "보안등급: 보통";
+                    errorEl.style.color = "#ffa500";
+                } else if (score === 4) {
+                    errorEl.textContent = "보안등급: 강함";
+                    errorEl.style.color = "#00c853";
+                } else if (score === 5) {
+                    errorEl.textContent = "사용 가능한 안전한 비밀번호입니다.";
+                    errorEl.style.color = "#00ff9d";
+                }
             }
         }
 
-        // 🔹 일치 체크
+        // ===== 비밀번호 일치 검사 =====
         function checkPasswordMatch() {
+            if (!password2 || !matchMsg) return;
+
             const pw1 = password1.value;
             const pw2 = password2.value;
 
@@ -113,6 +169,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 matchMsg.textContent = "";
                 return;
             }
+
 
             if (pw1 === pw2) {
                 matchMsg.textContent = "비밀번호가 일치합니다.";
@@ -123,13 +180,46 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        // 🔹 이벤트 연결
+        // ===== 이벤트 =====
         password1.addEventListener("input", () => {
             checkPasswordStrength();
             checkPasswordMatch();
         });
 
-        password2.addEventListener("input", checkPasswordMatch);
+        if (password2) {
+            password2.addEventListener("input", checkPasswordMatch);
+        }
+
+        // ===== 제출 차단 (핵심🔥) =====
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                const pw = password1.value;
+                const v = validatePassword(pw);
+
+                // 비밀번호 불일치
+                if (password2 && pw !== password2.value) {
+                    e.preventDefault();
+                    if (matchMsg) {
+                        matchMsg.textContent = "비밀번호가 일치하지 않습니다.";
+                        matchMsg.style.color = "#ff4d4d";
+                    }
+                    password2.focus();
+                    return;
+                }
+
+                // 조건 미충족 → 가입 차단
+                if (!v.lengthOk || !v.upperOk || !v.lowerOk || !v.numOk || !v.specialOk) {
+                    e.preventDefault();
+
+                    if (errorEl) {
+                        errorEl.textContent = "모든 조건을 만족해야 가입 가능합니다.";
+                        errorEl.style.color = "#ff4d4d";
+                    }
+
+                    password1.focus();
+                }
+            });
+        }
     }
 
     // ===== 로그인 비밀번호 보기 =====
