@@ -38,6 +38,7 @@ body {
     border-radius: 6px;
     text-decoration: none;
     font-size: 14px;
+    font-weight: bold;
 }
 
 .btn_logout:hover {

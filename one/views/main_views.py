@@ -2,15 +2,16 @@
 from flask import Blueprint, redirect, render_template, url_for, session, flash
 from ..models import Video, Plan
 
-bp = Blueprint('home', __name__, url_prefix='/')
-
-
+bp=Blueprint('home',__name__,url_prefix='/')
 
 @bp.route('/')
 def index():
-    if session.get('user'):   # 🔥 로그인 상태 체크
+    if session.get('user'):
         return redirect(url_for('home.main'))
-    return render_template('main/home.html')
+    video_list = Video.query.order_by(Video.video_unique_id.desc()).all()
+    plan_list = Plan.query.order_by(Plan.price.asc()).all()
+    return render_template('main/home.html', video_list=video_list,
+                           plans=plan_list)
 
 @bp.route('/home')
 def home():
@@ -23,7 +24,7 @@ def home():
 @bp.route('/main')
 def main():
     video_list = Video.query.order_by(Video.video_unique_id.desc()).all()
-    
+
     # 2. 템플릿에 video_list 데이터를 전달합니다.
     # 기존에 'main.html'을 사용 중이라면 아래와 같이 작성합니다.
     return render_template('main/main.html', video_list=video_list)
@@ -60,7 +61,6 @@ def support_check():
         return redirect(url_for('mypage.support_center'))
     else:
         # 3. 로그인 안 되어 있으면 로그인 페이지로 (auth 블루프린트의 login 함수)
-        flash("로그인이 필요한 서비스입니다.", "info")
         return redirect(url_for('auth.login'))
 
 

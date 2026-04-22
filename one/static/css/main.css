@@ -36,6 +36,7 @@ h3 {
     height: 610px;
     margin: 0 auto;
     border-radius: 40px;
+    overflow: hidden;
 }
 
 .swiper {
@@ -47,7 +48,8 @@ h3 {
   transition: all 0.3s ease; /* 부드러운 변화 */
 }
 
-.swiper-slide:hover {
+.box1 .swiper-slide:hover,
+.box2 .swiper-slide:hover{
   /* 마우스 올리면 색상 반전 또는 명도 조절 */
   filter: brightness(1.05);
   transform: translateY(-5%) scale(1); /* 중앙 정렬 유지하며 살짝 커짐 */
@@ -306,19 +308,10 @@ h3 {
 }
 
 .netflixst-toast {
-    border-radius: 10px !important;
-    padding: 14px 18px 14px 16px !important;
-
-    background: #2a2a2a !important;   /* ✅ 불투명 */
-    color: #f1f1f1 !important;
-
-    font-size: 14px;
-
     position: relative;
-    overflow: hidden;
+    overflow: hidden; /* 중요 */
 }
 
-/* 🔴 왼쪽 빨간 라인 (핵심) */
 .netflixst-toast::before {
     content: "";
     position: absolute;
@@ -329,34 +322,36 @@ h3 {
     background: #e50914;
 }
 
-/* 🔥 등장 애니메이션 (위에서 내려옴) */
-.animate-toast-in {
-    animation: toastSlideDown 0.35s ease forwards;
+/.animate-toast-in {
+    animation: toastBlurIn 0.3s ease;
 }
 
-/* 🔥 사라질 때 */
+@keyframes toastBlurIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+        filter: blur(4px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
 .animate-toast-out {
-    animation: toastFadeOut 0.2s ease forwards;
+    animation: toastBlurOut 0.4s ease forwards;
 }
 
-/* 등장 */
-@keyframes toastSlideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.95);
-    }
-    to {
+@keyframes toastBlurOut {
+    0% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
+        filter: blur(0);
     }
-}
-
-/* 사라짐 */
-@keyframes toastFadeOut {
-    from {
-        opacity: 1;
-    }
-    to {
+    100% {
         opacity: 0;
+        transform: translateY(-10px); /* 살짝 위로 */
+        filter: blur(4px); /* ⭐ 블러 핵심 */
     }
 }

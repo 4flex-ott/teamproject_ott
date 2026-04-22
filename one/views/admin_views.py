@@ -107,15 +107,57 @@ def member_list():
             else:
                 query = query.filter(User.user_unique_id == -1)
 
+
         else:
-            query = query.filter(
-                or_(
-                    User.user_email.contains(keyword),
-                    User.user_phone.contains(keyword),
-                    User.user_gender.contains(keyword),
-                    User.signup_method.contains(keyword)
-                )
-            )
+
+            conditions = [
+
+                User.user_email.contains(keyword),
+
+                User.user_phone.contains(keyword)
+
+            ]
+
+            if keyword in ['남', '남자', 'M', 'm']:
+
+                conditions.append(User.user_gender.in_(['M', 'm', '남', '남자']))
+
+            elif keyword in ['여', '여자', 'F', 'f']:
+
+                conditions.append(User.user_gender.in_(['F', 'f', '여', '여자']))
+
+            else:
+
+                conditions.append(User.user_gender.contains(keyword))
+
+            if keyword in ['이메일', 'email']:
+
+                conditions.append(User.signup_method == 'email')
+
+            elif keyword in ['카카오', 'kakao']:
+
+                conditions.append(User.signup_method == 'kakao')
+
+            elif keyword in ['네이버', 'naver']:
+
+                conditions.append(User.signup_method == 'naver')
+
+            else:
+
+                conditions.append(User.signup_method.contains(keyword))
+
+            if keyword.isdigit():
+                conditions.append(User.user_unique_id == int(keyword))
+
+            if keyword in ['활성', 'active', '1', 'true', 'True']:
+
+                conditions.append(User.user_active == True)
+
+            elif keyword in ['비활성', 'inactive', '0', 'false', 'False']:
+
+                conditions.append(User.user_active == False)
+
+            query = query.filter(or_(*conditions))
 
     member_list = query.order_by(User.user_unique_id.desc()).paginate(page=page, per_page=10)
 

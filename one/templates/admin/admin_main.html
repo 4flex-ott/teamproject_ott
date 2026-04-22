@@ -68,19 +68,19 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    {% if show_admin_login_success %}
-    Swal.fire({
-        title: '관리자 인증 성공!',
-        text: '{{ session.get("admin_name", "") }}님, 환영합니다.',
-        icon: 'success',
-        width: '360px',
-        background: '#1a1a1a',
-        color: '#fff',
-        confirmButtonText: '확인',
-        confirmButtonColor: '#ff153c'
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if show_admin_login_success %}
+        Swal.fire({
+            title: '관리자 인증 성공!',
+            text: '{{ session.get("admin_name", "") }}님, 환영합니다.',
+            icon: 'success',
+            width: '360px',
+            background: '#1a1a1a',
+            color: '#fff',
+            confirmButtonText: '확인',
+            confirmButtonColor: '#ff153c'
+        });
+        {% endif %}
     });
-    {% endif %}
-});
 </script>
 {% endblock %}

@@ -14,7 +14,7 @@
 <body>
 
 <!-------------------------------------- 헤더 --------------------------------------->
- {% include 'header.html' %}
+{% include 'header.html' %}
 <!--------------------------------- 메인 배너 ----------------------------------->
 <section class="banner">
     <div class="overlay"></div>
@@ -32,11 +32,11 @@
     <ul class="row g-4 list-unstyled">
         {% for video in video_list[:5] %}
         <li class="col-6 col-md-4 col-lg">
-<!--            <a href="{{ url_for('video.detail', video_id=video.video_unique_id) }}" class="text-decoration-none">-->
-                <div class="content_card1">
-                    <img src="{{ video.video_thumbnail }}" alt="{{ video.video_title }}">
-                </div>
-<!--            </a>-->
+            <!--            <a href="{{ url_for('video.detail', video_id=video.video_unique_id) }}" class="text-decoration-none">-->
+            <div class="content_card1">
+                <img src="{{ video.video_thumbnail }}" alt="{{ video.video_title }}">
+            </div>
+            <!--            </a>-->
         </li>
         {% endfor %}
     </ul>
@@ -51,16 +51,20 @@
 
     <ul class="row g-4 list-unstyled">
         <li class="col-12 col-md-6 col-lg-3">
-            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason1.png') }}" alt="reason1"></div>
+            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason1.png') }}" alt="reason1">
+            </div>
         </li>
         <li class="col-12 col-md-6 col-lg-3">
-            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason2.png') }}" alt="reason2"></div>
+            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason2.png') }}" alt="reason2">
+            </div>
         </li>
         <li class="col-12 col-md-6 col-lg-3">
-            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason3.png') }}" alt="reason3"></div>
+            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason3.png') }}" alt="reason3">
+            </div>
         </li>
         <li class="col-12 col-md-6 col-lg-3">
-            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason4.png') }}" alt="reason4"></div>
+            <div class="content_card2"><img src="{{ url_for('static', filename='img/reason4.png') }}" alt="reason4">
+            </div>
         </li>
     </ul>
 </section>
@@ -68,45 +72,47 @@
 <!------------------------------------- 콘텐츠 3 ---------------------------------->
 <section class="content_section_k container">
     <h2 class="mb-4">합리적인 선택!</h2>
-         <div class="plan-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px;">
-                {% for plan in plans %}
-                <div class="plan-card">
-                    <div class="card-header">
-                        <span class="ott-pass">OTT PASS</span>
-                        <div class="plan-title-wrapper" style="display: flex; align-items: center; gap: 10px;">
-                            <h2 class="plan-title">{{ plan.plan_name }}</h2>
-                            <img src="{{ url_for('static', filename='img/' + plan.plan_name.lower() + '.png') }}"
-                                 style="width: 32px; height: 32px; object-fit: contain;">
-                        </div>
-                    </div>
-
-                    <div class="price-section">
-                        <div style="display: flex; align-items: center;">
-                            <p class="plan-price">₩{{ "{:,.0f}".format(plan.price) }}</p>
-                            {% if plan.plan_name == 'basic' %}<span class="discount-badge">-10%</span>
-                            {% elif plan.plan_name == 'standard' %}<span class="discount-badge">-18%</span>
-                            {% elif plan.plan_name == 'premium' %}<span class="discount-badge highlight">-30%</span>
-                            {% endif %}
-                        </div>
-                        <p class="plan-duration">
-                            {% if plan.plan_name == 'starter' %}1개월{% elif plan.plan_name == 'basic' %}3개월{% elif plan.plan_name == 'standard' %}6개월{% else %}12개월{% endif %} 이용
-                        </p>
-                    </div>
-
-                    <ul class="plan-features">
-                        <li>✓ 모든 시리즈 & 영화 시청</li>
-                        <li>✓ 광고 없는 깨끗한 재생</li>
-                        {% if plan.plan_name == 'premium' %}
-                        <li class="feature-highlight">✓ 최대 4K UHD 화질</li>
-                        <li class="feature-highlight">✓ 동시 접속 4인</li>
-                        {% endif %}
-                    </ul>
+    <div class="plan-grid"
+         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px;">
+        {% for plan in plans %}
+        <div class="plan-card">
+            <div class="card-header">
+                <span class="ott-pass">OTT PASS</span>
+                <div class="plan-title-wrapper" style="display: flex; align-items: center; gap: 10px;">
+                    <h2 class="plan-title">{{ plan.plan_name }}</h2>
+                    <img src="{{ url_for('static', filename='img/' + plan.plan_name.lower() + '.png') }}"
+                         style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
-                {% endfor %}
-         </div>
-         <div class="cta-container">
-                <a href="{{ url_for('auth.login') }}" class="main-start-btn scroll-fade">4FLEX 시작하기</a>
-         </div>
+            </div>
+
+            <div class="price-section">
+                <div style="display: flex; align-items: center;">
+                    <p class="plan-price">₩{{ "{:,.0f}".format(plan.price) }}</p>
+                    {% if plan.plan_name == 'basic' %}<span class="discount-badge">-10%</span>
+                    {% elif plan.plan_name == 'standard' %}<span class="discount-badge">-18%</span>
+                    {% elif plan.plan_name == 'premium' %}<span class="discount-badge highlight">-30%</span>
+                    {% endif %}
+                </div>
+                <p class="plan-duration">
+                    {% if plan.plan_name == 'starter' %}1개월{% elif plan.plan_name == 'basic' %}3개월{% elif plan.plan_name
+                    == 'standard' %}6개월{% else %}12개월{% endif %} 이용
+                </p>
+            </div>
+
+            <ul class="plan-features">
+                <li>✓ 모든 시리즈 & 영화 시청</li>
+                <li>✓ 광고 없는 깨끗한 재생</li>
+                {% if plan.plan_name == 'premium' %}
+                <li class="feature-highlight">✓ 최대 4K UHD 화질</li>
+                <li class="feature-highlight">✓ 동시 접속 4인</li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="cta-container">
+        <a href="{{ url_for('auth.login') }}" class="main-start-btn scroll-fade">4FLEX 시작하기</a>
+    </div>
 </section>
 <!--------------------------------------- 푸터 ---------------------------------->
 {% include 'footer.html'%}
@@ -137,7 +143,7 @@
                 title: msg.text,
 
                 showConfirmButton: false,
-                timer: 2200,
+                timer: 1000,
                 timerProgressBar: true,
 
                 background: '#2a2a2a',
