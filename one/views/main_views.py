@@ -10,7 +10,10 @@ bp = Blueprint('home', __name__, url_prefix='/')
 def index():
     if session.get('user'):   # 🔥 로그인 상태 체크
         return redirect(url_for('home.main'))
-    return render_template('main/home.html')
+    video_list = Video.query.order_by(Video.video_unique_id.desc()).all()
+    plan_list = Plan.query.order_by(Plan.price.asc()).all()
+    return render_template('main/home.html', video_list=video_list,
+                           plans=plan_list)
 
 @bp.route('/home')
 def home():
@@ -60,7 +63,6 @@ def support_check():
         return redirect(url_for('mypage.support_center'))
     else:
         # 3. 로그인 안 되어 있으면 로그인 페이지로 (auth 블루프린트의 login 함수)
-        flash("로그인이 필요한 서비스입니다.", "info")
         return redirect(url_for('auth.login'))
 
 

@@ -2,13 +2,16 @@ from flask import Flask, redirect, url_for
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_mail import Mail  # 1. 추가
 
 import os
 import config
 
+
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager() # 추가됨: 이 줄이 있어야 빨간 줄이 사라집니다.
+mail = Mail()  # 2. 메일 객체 생성
 
 def create_app():
     app=Flask(__name__)
@@ -25,6 +28,9 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     from . import models
+
+    # 메일 초기화 (추가)
+    mail.init_app(app)
 
     # 3. LoginManager 연결
     login_manager.init_app(app)

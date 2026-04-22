@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 서브밋 시 최종 방어 코드
 function validatePassword() {
-    const pw1 = document.getElementById('password1').value;
+    const pw1 = document.getElementById('pw1').value;
     const pw2 = document.getElementById('pw2').value;
     if (pw1 !== pw2) {
         alert("비밀번호가 일치하지 않습니다.");

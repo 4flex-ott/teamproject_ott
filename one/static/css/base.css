@@ -61,7 +61,7 @@ body {
     align-items: center;
 }
 .list{
-    display:flex;  
+    display:flex;
     background-color: #000;
 }
 .search_box{
@@ -71,7 +71,7 @@ body {
 footer{
     width: 100%;
     background-color: black;
-    height: 350px;
+    height: 230px;
     color: gray;
     font-size: 12px;
 }
@@ -106,8 +106,8 @@ footer{
     font-size: 24px;
 }
 a {
-    text-decoration: none;
-    color: gray;
+    text-decoration: none!important;
+    color: gray!important;
 }
 .term_title_list{
     border: none;
