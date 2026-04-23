@@ -35,13 +35,14 @@ def get_unique_filename(upload_folder, filename):
 
 bp = Blueprint('admin', __name__, url_prefix='/admin')
 
-
-@bp.route('/')
-def admin_main():
+@bp.before_request
+def require_admin():
     if not session.get('is_admin'):
         flash("관리자 권한이 없습니다.", "error")
         return redirect(url_for('auth.login'))
 
+@bp.route('/')
+def admin_main():
     user_count = User.query.count()
     content_count = Video.query.count()
     inquiry_pending_count = Support.query.filter_by(status='pending').count()
