@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, session, jsonify, request
 from ..models import Video, User, WatchHistory, VideoLike, VideoWish, db, Review
 from datetime import datetime, timezone
+from sqlalchemy import or_
 bp = Blueprint('video', __name__, url_prefix='/video')
 
 
@@ -162,3 +163,17 @@ def submit_review(video_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'result': 'fail', 'message': str(e)}), 500
+
+# 검색
+@bp.route('/search')
+def search():
+    keyword = request.args.get('keyword', '').strip()
+
+    query = Video.query
+
+    if keyword:
+        query = query.filter(Video.video_title.contains(keyword))
+
+    video_list = query.order_by(Video.video_unique_id.desc()).all()
+
+    return render_template('sub/search_result.html', video_list=video_list, keyword=keyword)
