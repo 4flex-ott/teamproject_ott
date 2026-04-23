@@ -222,14 +222,126 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    // ===== 로그인 비밀번호 보기 =====
-    const pwInput = document.getElementById("login-password");
-    const toggleBtn = document.getElementById("togglePw");
+        // ===== 로그인 비밀번호 보기 =====
+        const pwInput = document.getElementById("login-password");
+        const toggleBtn = document.getElementById("togglePw");
 
-    if (pwInput && toggleBtn) {
-        toggleBtn.addEventListener("click", () => {
-            pwInput.type = pwInput.type === "password" ? "text" : "password";
+        if (pwInput && toggleBtn) {
+            toggleBtn.addEventListener("click", () => {
+                pwInput.type = pwInput.type === "password" ? "text" : "password";
+            });
+        }
+
+    });
+
+
+     function getEmail() {
+    return document.getElementById("email_input").value;
+}
+
+// 🔹 메일 보내기 버튼
+// 🔹 메일 보내기 버튼
+const sendBtn = document.getElementById("btn-send-email");
+
+if (sendBtn) {
+    sendBtn.addEventListener("click", async () => {
+
+        console.log("🔥 버튼 클릭됨");
+
+        const email = getEmail();
+
+        if (!email) {
+            Swal.fire({
+                title: "이메일을 입력해주세요.",
+                icon: undefined,
+                width: '360px',
+                background: '#343a40',
+                color: '#fff',
+                confirmButtonText: '확인',
+                customClass: {
+                    popup: 'swal-popup-custom',
+                    confirmButton: 'swal-confirm-btn'
+                },
+                buttonsStyling: false
+            });
+            return;
+        }
+
+        // ✅ 먼저 팝업 바로 띄움 (UX 빠르게)
+        Swal.fire({
+            title: "전송 완료",
+            text: "인증 메일을 확인해주세요.",
+            icon: undefined,
+            width: '360px',
+            background: '#343a40',
+            color: '#fff',
+            confirmButtonText: '확인',
+            customClass: {
+                popup: 'swal-popup-custom',
+                confirmButton: 'swal-confirm-btn'
+            },
+            buttonsStyling: false
         });
-    }
 
-});
+        // ✅ 서버 요청은 뒤에서 (await 제거)
+        fetch("/send-code", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ email })
+        });
+
+    });
+}
+
+
+// 🔹 인증 버튼
+const verifyBtn = document.getElementById("verify-btn");
+
+if (verifyBtn) {
+    verifyBtn.addEventListener("click", async () => {
+
+        const email = getEmail();
+        const code = document.getElementById("code").value;
+
+        const res = await fetch("/verify-code", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ email, code })
+        });
+
+        if (res.ok) {
+            Swal.fire({
+                title: "인증 완료",
+                text: "이제 비밀번호를 변경할 수 있습니다.",
+                icon: undefined,
+                width: '360px',
+                background: '#343a40',
+                color: '#fff',
+                confirmButtonText: '확인',
+                customClass: {
+                    popup: 'swal-popup-custom',
+                    confirmButton: 'swal-confirm-btn'
+                },
+                buttonsStyling: false
+            });
+
+            document.getElementById("reset-btn").disabled = false;
+
+        } else {
+            Swal.fire({
+                title: "인증 실패",
+                text: "인증 코드를 다시 확인해주세요.",
+                icon: undefined,
+                width: '360px',
+                background: '#343a40',
+                color: '#fff',
+                confirmButtonText: '확인',
+                customClass: {
+                    popup: 'swal-popup-custom',
+                    confirmButton: 'swal-confirm-btn'
+                },
+                buttonsStyling: false
+            });
+        }
+    });
+}

@@ -1,13 +1,21 @@
-from flask import Blueprint, session, render_template, redirect, request, flash, url_for
+from flask import Blueprint, session, render_template, redirect, request, flash, url_for, jsonify
 from one.forms import LoginForm, UserCreateForm, FindIdForm, ResetPasswordForm
 from datetime import datetime
 from functools import wraps
 from one.models import User, db, Admin
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_mail import Mail, Message
+from one import mail
 import requests
 import urllib.parse
+import time
+import random
+
 
 bp = Blueprint('auth', __name__, url_prefix='/')
+
+email_codes = {}
+
 
 NAVER_CLIENT_ID = "lcxQzP8cM2q3js42vNfp"
 NAVER_CLIENT_SECRET = "sGNLiu_pnW"
@@ -325,23 +333,89 @@ def find_id():
 def reset_password():
     form = ResetPasswordForm()
 
-    if request.method == 'POST':
-        print("form errors:", form.errors)
-        print("validate:", form.validate())
-
+    # ✅ POST(버튼 클릭)일 때만 인증 체크
     if form.validate_on_submit():
+
+        if not session.get('email_verified'):
+            flash("이메일 인증이 필요합니다.", "error")
+            return render_template('auth/reset_password.html', form=form)
+
         user = User.query.filter_by(
-            user_email=form.email.data,
+            user_email=session.get('reset_email'),  # 세션 이메일 사용
             user_name=form.name.data
         ).first()
+
+        if not session.get('reset_email'):
+            flash("잘못된 접근입니다.", "error")
+            return render_template('auth/reset_password.html', form=form)
 
         if user:
             user.user_password = generate_password_hash(form.password1.data)
             db.session.commit()
 
+            # ✅ 인증 상태 초기화
+            session.pop('email_verified', None)
+            session.pop('reset_email', None)
+
             flash("비밀번호가 변경되었습니다!", "success")
             return redirect(url_for('auth.login'))
         else:
-            flash("일치하는 계정이 없습니다.")
+            flash("일치하는 계정이 없습니다.", "error")
 
+    # ✅ GET (페이지 처음 진입)
     return render_template('auth/reset_password.html', form=form)
+
+@bp.route('/verify-code', methods=['POST'])
+def verify_code():
+    data = request.json
+    email = data.get('email')
+    code = data.get('code')
+
+    code_data = email_codes.get(email)
+
+    if not code_data:
+        return jsonify({'success': False, 'message': '코드 없음'}), 400
+
+    if code_data['code'] != code:
+        return jsonify({'success': False, 'message': '코드 불일치'}), 400
+
+    if code_data['expire'] < time.time():
+        return jsonify({'success': False, 'message': '코드 만료'}), 400
+
+    # ✅ 인증 성공
+    session['email_verified'] = True
+    session['reset_email'] = email
+
+    # ✅ 코드 제거
+    email_codes.pop(email, None)
+
+    return jsonify({'success': True})
+
+
+@bp.route('/send-code', methods=['POST'])
+def send_code():
+    data = request.json
+    email = data.get('email')
+
+    if not email:
+        return jsonify({'success': False}), 400
+
+    code = str(random.randint(100000, 999999))
+
+    email_codes[email] = {
+        "code": code,
+        "expire": time.time() + 300
+    }
+
+    # 🔥 메일 발송
+    msg = Message(
+        subject="[인증코드] 비밀번호 재설정",
+        recipients=[email],
+        body=f"인증코드: {code}\n5분 내에 입력해주세요."
+    )
+
+    mail.send(msg)
+
+    print("🔥 send-code 들어옴")
+
+    return jsonify({'success': True})

@@ -162,8 +162,74 @@ body {
     margin-bottom: 12px;
 }
 
-.email-highlight {
-    font-size: 16px;
-    font-weight: bold;
-    color: #e50914;
+
+/* 인증 확인 버튼 */
+.verify-box button {
+    padding: 10px 14px;
+    border-radius: 6px;
+    border: none;
+    background: #e50914;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* 인증메일 보내기 버튼 */
+.btn-send-email {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+
+    background: #e2e6ea;
+    border: 1px solid #5a646b;
+    color: #000;
+
+    font-size: 15px;
+    font-weight: 500;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-send-email:hover {
+    background: #eef1f4;
+}
+
+/* 클릭 */
+.btn-send-email:active {
+    transform: scale(0.97);
+}
+
+/* 비활성 상태 */
+.btn-send-email:disabled {
+    background: #555;
+    cursor: not-allowed;
+}
+
+.verify-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.verify-box input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 8px;
+
+    background: #3f474d;
+    color: #fff;
+
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.verify-box input::placeholder {
+    color: #aaa;
+}
+
+.verify-box input:focus {
+    background-color: #2f2f2f !important;
 }
