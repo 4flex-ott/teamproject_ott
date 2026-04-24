@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session, jsonify, request
+from flask import Blueprint, render_template, session, jsonify, request, flash, url_for, redirect
 from ..models import Video, User, WatchHistory, VideoLike, VideoWish, db, Review, Subscription
 from datetime import datetime, timezone
 from sqlalchemy import or_
@@ -8,8 +8,10 @@ bp = Blueprint('video', __name__, url_prefix='/video')
 # 목록 페이지
 @bp.route('/list')
 def list():
-    # 1. 세션에서 유저 ID 가져오기
     user_id = session.get('user')
+    if not user_id:
+        flash("로그인이 필요한 서비스입니다.")
+        return redirect(url_for('auth.login'))
 
     # 2. 유저 정보 조회 (로그인 상태면 유저 객체, 아니면 None)
     user_data = User.query.get(user_id) if user_id else None
@@ -24,6 +26,9 @@ def list():
 @bp.route('/detail/<int:video_id>')
 def detail(video_id):
     user_id = session.get('user')
+    if not user_id:
+        flash("로그인이 필요한 서비스입니다.")
+        return redirect(url_for('auth.login'))
     video = Video.query.get_or_404(video_id)
     # [구독 체크 로직 추가]
     can_watch = False

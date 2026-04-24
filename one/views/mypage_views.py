@@ -36,7 +36,14 @@ def mypage():
 
 @bp.route('/change', methods=['GET', 'POST'])
 def change_info():
+    # 1. 세션에서 로그인한 사용자의 ID를 가져옵니다. ('user' 키 사용)
     user_unique_id = session.get('user')
+
+    # 2. 로그인하지 않은 사용자가 접근했을 경우 처리
+    if not user_unique_id:
+        flash("로그인이 필요한 서비스입니다.")
+        return redirect(url_for('auth.login'))
+
     user_data = User.query.get_or_404(user_unique_id)
 
     form = UserCreateForm()
@@ -111,7 +118,9 @@ def change_info():
 @bp.route('/support/write', methods=['GET', 'POST'])
 def support_write():
     user_id = session.get('user')
-    if not user_id: return redirect(url_for('auth.login'))
+    if not user_id:
+        flash("로그인이 필요한 서비스입니다.")
+        return redirect(url_for('auth.login'))
 
     user_data = User.query.get_or_404(user_id)
 
@@ -163,6 +172,9 @@ def support_write():
 @bp.route('/support/detail/<int:support_id>')
 def support_detail(support_id):
     user_id = session.get('user')
+    if not user_id:
+        flash("로그인이 필요한 서비스입니다.")
+        return redirect(url_for('auth.login'))
     # 본인 글인지 확인하는 보안 로직 포함
     support = Support.query.get_or_404(support_id)
     if support.user_unique_id != user_id:
@@ -174,8 +186,12 @@ def support_detail(support_id):
 
 @bp.route('/support-center')
 def support_center():
+    # 1. 세션에서 로그인한 사용자의 ID를 가져옵니다. ('user' 키 사용)
     user_unique_id = session.get('user')
+
+    # 2. 로그인하지 않은 사용자가 접근했을 경우 처리
     if not user_unique_id:
+        flash("로그인이 필요한 서비스입니다.")
         return redirect(url_for('auth.login'))
 
     user_data = User.query.get_or_404(user_unique_id)
@@ -211,7 +227,13 @@ def support_center():
 
 @bp.route('/notice/<int:notice_id>')
 def notice_detail(notice_id):
-    # DB에서 해당 공지사항 조회
+    # 1. 세션에서 로그인한 사용자의 ID를 가져옵니다. ('user' 키 사용)
+    user_unique_id = session.get('user')
+
+    # 2. 로그인하지 않은 사용자가 접근했을 경우 처리
+    if not user_unique_id:
+        flash("로그인이 필요한 서비스입니다.")
+        return redirect(url_for('auth.login'))
     notice = Notice.query.get_or_404(notice_id)
 
     # 조회수 증가 (선택 사항)
@@ -226,7 +248,9 @@ def notice_detail(notice_id):
 def support_center_write():
     user_id = session.get('user')
     if not user_id:
+        flash("로그인이 필요한 서비스입니다.")
         return redirect(url_for('auth.login'))
+
 
     # 1. 데이터 및 파일 수집
     category = request.form.get('category')
@@ -285,6 +309,11 @@ def support_center_write():
 @bp.route('/subscribe')
 def subscribe():
     user_id = session.get('user')
+
+    # 2. 로그인하지 않은 사용자가 접근했을 경우 처리
+    if not user_id:
+        flash("로그인이 필요한 서비스입니다.")
+        return redirect(url_for('auth.login'))
     now = datetime.now()
 
     # ⏳ [상태 자동 업데이트] 만료시간 지났는데 아직 active인 것들 찾기
@@ -312,6 +341,9 @@ def subscribe():
 @bp.route('/purchase/<int:plan_id>', methods=['POST'])
 def purchase_plan(plan_id):
     user_unique_id = session.get('user')
+    if not user_unique_id:
+        flash("로그인이 필요한 서비스입니다.")
+        return redirect(url_for('auth.login'))
     plan = Plan.query.get_or_404(plan_id)
 
     # 1. 시간 설정 (Naive로 통일)

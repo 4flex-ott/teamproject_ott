@@ -1,9 +1,17 @@
-
-from flask import Blueprint, redirect, render_template, url_for, session, flash
+from flask import Blueprint, redirect, render_template, url_for, session, flash, request
 from ..models import Video, Plan, User, db
 import random
 
 bp=Blueprint('home',__name__,url_prefix='/')
+@bp.before_request
+def require_login():
+    # 홈(랜딩) 페이지는 허용
+    if request.endpoint in ['home.index', 'home.home']:
+        return
+
+    if not session.get('user'):
+        flash("로그인이 필요합니다.", "error")
+        return redirect(url_for('auth.login'))
 
 @bp.route('/')
 def index():
@@ -31,7 +39,8 @@ def main():
     
     # 모든 비디오 가져오기
     all_videos = Video.query.order_by(Video.video_unique_id.desc()).all()
-
+    # 🔍 공지사항 가져오기 (고정글 우선 -> 최신순 1개)
+    latest_notice = Notice.query.order_by(Notice.is_pinned.desc(), Notice.created_at.desc()).first()
     # 속성 이름을 video_genres로 수정
     video_sections = [
         {
@@ -55,7 +64,8 @@ def main():
     return render_template('main/main.html', 
                            video_sections=video_sections, 
                            video_list=all_videos, 
-                           user=user_data)
+                           user=user_data,
+                           notice=latest_notice)
 
 
 @bp.route('/drama')
