@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}검색 {{ keyword }}{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search_result.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="search-title">"{{ keyword }}" 검색 결과</h3>
+
+    <div class="row mt-4">
+        {% for video in video_list %}
+        <div class="col-md-3 mb-4">
+            <div class="card netflix-card">
+                <img src="{{ video.video_thumbnail }}"
+                     class="card-img-top"
+                     alt="{{ video.video_title }}">
+
+                <div class="card-body">
+                    <h5 class="video-title">{{ video.video_title }}</h5>
+                    <a href="{{ url_for('video.detail', video_id=video.video_unique_id) }}"
+                       class="btn btn-danger view-btn">보기</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <p class="text-white">검색 결과가 없습니다.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
