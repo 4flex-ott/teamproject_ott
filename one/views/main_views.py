@@ -83,7 +83,8 @@ def drama():
 
     # 4. TOP 10 고정 (제외된 리스트 중 상위 10개)
     top10_videos = filtered_dramas[:10]
-
+    # 🔍 공지사항 가져오기 (고정글 우선 -> 최신순 1개)
+    latest_notice = Notice.query.order_by(Notice.is_pinned.desc(), Notice.created_at.desc()).first()
     # 5. 하단 섹션용 (제외된 리스트 중 랜덤)
     random_drama_pool = random.sample(filtered_dramas, min(len(filtered_dramas), 36))
 
@@ -107,7 +108,8 @@ def movie():
     
     # 3. 하단 섹션용 필터링 (헤더 ID 제외)
     filtered_data = [v for v in movie_data if v.video_unique_id not in header_ids]
-    
+    # 🔍 공지사항 가져오기 (고정글 우선 -> 최신순 1개)
+    latest_notice = Notice.query.order_by(Notice.is_pinned.desc(), Notice.created_at.desc()).first()
     # 4. TOP 10 고정 & 하단 섹션 랜덤
     top10_videos = filtered_data[:10]
     random_movies = random.sample(filtered_data, min(len(filtered_data), 36))
@@ -130,7 +132,8 @@ def entertainment():
     header_ids = [132, 133]
     
     filtered_data = [v for v in entertainment_data if v.video_unique_id not in header_ids]
-    
+    # 🔍 공지사항 가져오기 (고정글 우선 -> 최신순 1개)
+    latest_notice = Notice.query.order_by(Notice.is_pinned.desc(), Notice.created_at.desc()).first()
     top10_videos = filtered_data[:10]
     random_ents = random.sample(filtered_data, min(len(filtered_data), 36))
     
@@ -152,7 +155,8 @@ def anime():
     header_ids = [87, 129]
     
     filtered_data = [v for v in anime_data if v.video_unique_id not in header_ids]
-    
+    # 🔍 공지사항 가져오기 (고정글 우선 -> 최신순 1개)
+    latest_notice = Notice.query.order_by(Notice.is_pinned.desc(), Notice.created_at.desc()).first()
     top10_videos = filtered_data[:10]
     random_animes = random.sample(filtered_data, min(len(filtered_data), 36))
     
